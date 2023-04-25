@@ -1,4 +1,5 @@
 let connection = require("../../config/connection.js");
+const sendMail = require("../utils/mail.js");
 
 module.exports = {
   login: function (req, res) {
@@ -219,4 +220,11 @@ module.exports = {
       });
     }
   },
+  sendmail: async function (req,res){
+    await sendMail("gurudeepnaik1999@gmail.com","Hello Bro");
+    res.status(201).json({
+      status: 0,
+      message: "Please enter all the fields.",
+    });
+  }
 };

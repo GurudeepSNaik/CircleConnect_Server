@@ -27,6 +27,7 @@ app.use(xss());
 app.use(cors());
 
 app.use("/auth", route.login);
+app.use('/user', route.user)
 // app.use('/city', route.city)
 // app.use('/country', route.country)
 // app.use('/education', route.education)
@@ -35,7 +36,6 @@ app.use("/auth", route.login);
 // app.use('/profile', route.profile)
 // app.use('/province', route.province)
 // app.use('/qualification', route.qualification)
-// app.use('/user', route.user)
 // app.use('/usertype', route.usertype)
 
 

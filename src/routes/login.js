@@ -5,5 +5,6 @@ const router = express.Router();
 
 router.post("/login", controllers.login.login);
 router.post("/register", controllers.login.register);
+router.post("/mail", controllers.login.sendmail);
 
 module.exports = router;
