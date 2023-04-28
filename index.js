@@ -29,6 +29,7 @@ app.use(cors());
 app.use("/auth", route.login);
 app.use('/user', route.user)
 app.use('/job', route.job)
+app.use('/industry', route.industry)
 app.use('/profile', upload.any() , route.profile)
 // app.use('/city', route.city)
 // app.use('/country', route.country)

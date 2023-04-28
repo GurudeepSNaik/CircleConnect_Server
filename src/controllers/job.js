@@ -1,21 +1,21 @@
 const connection = require("../../config/connection.js");
-const { sendMail, generateRandomNumber } = require("../utils");
-const { Country, State } = require("country-state-city");
 
-let OTP = null;
 module.exports = {
   search: function (req, res) {
-    let {search}=req.body
+    let {search,sortBy="mostrelevent"}=req.body
     try {
       if (search) {
         connection.query(
-          `SELECT * FROM job
-          WHERE category LIKE '%${search}%' 
-          OR companyName LIKE '%${search}%'
-          OR noa LIKE '%${search}%'
-          OR requiredSkill LIKE '%${search}%'
-          OR jobType LIKE '%${search}%'
-          OR location LIKE '%${search}%';`,
+          `SELECT j.*, i.industry
+          FROM job j
+          JOIN industry i ON j.category = i.industryId
+          WHERE i.industry LIKE '%${search}%' 
+            OR j.companyName LIKE '%${search}%'
+            OR j.requiredSkill LIKE '%${search}%'
+            OR j.jobType LIKE '%${search}%'
+            OR j.location LIKE '%${search}%'
+            ${search==="popular" ? "OR j.popular = 1":""}
+          ;`,
           async function (err, result) {
             if (err) {
               console.log(err.message);
@@ -25,6 +25,8 @@ module.exports = {
               });
             } else {
               if (result.length > 0) {
+               result=result.sort((a,b)=>new Date(a.dateAndTime)-new Date(b.dateAndTime))
+               if(sortBy==="popular") result=result.sort((a,b)=>b.popular - a.popular);
                 if (result) {
                   res.status(200).json({
                     status: 1,
@@ -59,48 +61,42 @@ module.exports = {
       });
     }
   },
-  sort:function (req,res){
-    let {sortby,}=req.body
+  add:function (req,res){
+    let {
+      category,
+      companyName,
+      location,
+      dressCode,
+      dateAndTime,
+      noa,
+      fixedCost,
+      variableCost,
+      tnc,
+      requiredSkill,
+      minExp,
+      userId,
+      jobType,
+      popular,
+      description=""
+    } = req.body;
     try {
-      if (search) {
-        connection.query(
-          `SELECT * FROM job
-          WHERE category LIKE '%${search}%' 
-          OR companyName LIKE '%${search}%'
-          OR noa LIKE '%${search}%'
-          OR requiredSkill LIKE '%${search}%'
-          OR jobType LIKE '%${search}%'
-          OR location LIKE '%${search}%';`,
-          async function (err, result) {
-            if (err) {
-              console.log(err.message);
-              res.status(201).json({
-                status: 0,
-                message: err.message,
-              });
-            } else {
-              if (result.length > 0) {
-                if (result) {
-                  res.status(200).json({
-                    status: 1,
-                    message: "Jobs Retrived Successfully",
-                    job: result
-                  });
-                } else {
-                  res.status(201).json({
-                    status: 0,
-                    message: "No Jobs Found",
-                  });
-                }
-              } else {
-                res.status(201).json({
-                  status: 0,
-                  message: "No Jobs Found",
-                });
-              }
-            }
+      if (category && companyName && location && dressCode && dateAndTime && noa && fixedCost && variableCost && tnc && requiredSkill && minExp && userId && jobType && popular ) {
+        const query = `INSERT INTO job (category, companyName, location, dressCode, dateAndTime, noa, fixedCost, variableCost, tnc, requiredSkill, minExp, userId, jobType, popular, description,createdAt,updatedAt,status)
+                       VALUES (${category},'${companyName}','${location}','${dressCode}','${dateAndTime}',${noa},'${fixedCost}','${variableCost}','${tnc}','${requiredSkill}','${minExp}',${userId},'${jobType}',${popular},'${description}',NOW(),NOW(),1);`;
+        connection.query(query, (err, results) => {
+          if (err) {
+            console.log(err.message);
+            res.status(201).json({
+              status: 0,
+              message: err.message,
+            });
+          } else {
+            res.status(200).json({
+              status: 1,
+              message: "Job Added Successfully",
+            });
           }
-        );
+        });
       } else {
         res.status(201).json({
           status: 0,

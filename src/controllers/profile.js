@@ -1,8 +1,5 @@
 const connection = require("../../config/connection.js");
-const { sendMail, generateRandomNumber } = require("../utils");
-const { Country, State } = require("country-state-city");
 
-let OTP = null;
 module.exports = {
   add: function (req, res) {
     let {
