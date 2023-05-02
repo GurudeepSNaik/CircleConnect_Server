@@ -53,7 +53,7 @@ module.exports = {
         );
       } else {
         const query =
-          "SELECT j.*,i.industry FROM JOB j JOIN industry i ON j.category = i.industryId";
+          "SELECT j.*,i.industry FROM job j JOIN industry i ON j.category = i.industryId";
         connection.query(query, (err, result) => {
           if (err) {
             console.log(err);
