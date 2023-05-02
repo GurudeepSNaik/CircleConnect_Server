@@ -93,7 +93,7 @@ module.exports = {
         }
       );
     }else{
-      connection.query("Select * from user", function (err, result) {
+      connection.query("SELECT user.*, profile.userId AS profileUserId,profile.profileId,profile.dob,profile.fullName,profile.accountNumber,profile.bankName,profile.tn_rn,profile.about,profile.profilePic FROM user LEFT JOIN profile ON user.userId = profile.userId", function (err, result) {
         if (err) {
           console.log(err.message);
           res.status(201).json({

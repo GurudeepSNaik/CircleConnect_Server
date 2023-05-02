@@ -11,6 +11,6 @@ router.post("/forgotpassword", controllers.login.forgotpassword);
 router.post("/verifyotpforregeneratepassword", controllers.login.verifyotpforregeneratepassword);
 router.post("/updatepassword", controllers.login.updatepassword);
 router.get("/country", controllers.login.country);
-router.get("/province", controllers.login.province);
+router.post("/province", controllers.login.province);
 
 module.exports = router;

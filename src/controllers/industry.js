@@ -53,7 +53,7 @@ module.exports = {
                   res.status(200).json({
                     status: 1,
                     message: "Industries Retrived Successfully",
-                    industries: result,
+                    list: result,
                   });
                 } else {
                   res.status(201).json({
@@ -156,4 +156,53 @@ module.exports = {
       });
     }
   },
+  industrywithjobs: function (req,res){
+    try {
+        connection.query(
+          `SELECT * FROM industry;
+           SELECT * FROM Job;`,
+          async function (err, result) {
+            if (err) {
+              console.log(err.message);
+              res.status(201).json({
+                status: 0,
+                message: err.message,
+              });
+            } else {
+              if (result.length > 0) {
+                if (result) {
+                  const industry=result[0]
+                  const job=result[1];
+                  const data=industry.map((ind)=>{
+                  const jobs=[]
+                  job.forEach((each)=> each.category===ind.industryId && jobs.push(each));
+                  return {industryId:ind.industryId,industry:ind.industry,jobs:jobs}
+                  })
+                  res.status(200).json({
+                    status: 1,
+                    message: "Industries With Jobs Retrived Successfully",
+                    industries: data,
+                  });
+                } else {
+                  res.status(201).json({
+                    status: 0,
+                    message: "No Industries Found",
+                  });
+                }
+              } else {
+                res.status(201).json({
+                  status: 0,
+                  message: "No Industries Found",
+                });
+              }
+            }
+          }
+        );
+    } catch (error) {
+      res.status(201).json({
+        status: 0,
+        message: error.message,
+      });
+    }
+  }
 };

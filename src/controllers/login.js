@@ -408,7 +408,8 @@ module.exports = {
       }));
       res.status(200).json({
         status: 1,
-        message: countries,
+        message: "Country Successfully retrived",
+        list:countries,
       });
     } catch (error) {
       console.log(error.message);
@@ -426,9 +427,11 @@ module.exports = {
         const province = State.getStatesOfCountry(country.isoCode).map(
           (state) => ({ name: state.name, code: state.isoCode })
         );
+        
         res.status(200).json({
           status: 1,
-          message: province,
+          message: "States Successfully Retrived",
+          list: province,
         });
       } else {
         res.status(201).json({
