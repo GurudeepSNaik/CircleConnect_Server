@@ -112,7 +112,7 @@ module.exports = {
         jobType &&
         popular
       ) {
-        const query = `SELECT * FROM USER WHERE userId=${userId}`;
+        const query = `Select * from user where userId =${userId}`;
         connection.query(query, (err, result) => {
           if (err) {
             console.log(err.message);
@@ -122,7 +122,7 @@ module.exports = {
             });
           } else {
             if (result[0] && result[0].type) {
-              const type = result[0].type.toUppercase();
+              const type = result[0].type.toUpperCase();
               if (type === "ADMIN" || type === "JOB POSTER") {
                 const query = `INSERT INTO job (category, companyName, location, dressCode, dateAndTime, noa, fixedCost, variableCost, tnc, requiredSkill, minExp, userId, jobType, popular, description,createdAt,updatedAt,status)
                                VALUES (${category},'${companyName}','${location}','${dressCode}','${dateAndTime}',${noa},'${fixedCost}','${variableCost}','${tnc}','${requiredSkill}','${minExp}',${userId},'${jobType}',${popular},'${description}',NOW(),NOW(),1);`;
