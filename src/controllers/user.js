@@ -59,7 +59,7 @@ module.exports = {
     }
   },
   getuser: async function (req, res) {
-    const {id}=req.body;
+    const {id,search}=req.body;
     if(id){
       connection.query(`Select * from user where userId = '${id}'`,
         async function (err, result) {
@@ -75,7 +75,7 @@ module.exports = {
                 res.status(200).json({
                   status: 1,
                   message: "user retrived successfully",
-                  data: result[0],
+                  list: result[0],
                 });
               } else {
                 res.status(201).json({
@@ -92,6 +92,30 @@ module.exports = {
           }
         }
       );
+    }else if(search){
+      connection.query(`SELECT user.*, profile.userId AS profileUserId,profile.profileId,profile.dob,profile.fullName,profile.accountNumber,profile.bankName,profile.tn_rn,profile.about,profile.profilePic FROM user LEFT JOIN profile ON user.userId = profile.userId 
+      WHERE user.name LIKE '%${search}%' 
+      OR user.email LIKE '%${search}%'
+      OR user.type LIKE '%${search}%'
+      OR user.city LIKE '%${search}%'
+      OR user.province LIKE '%${search}%'
+      OR user.country LIKE '%${search}%'
+      OR profile.fullName LIKE '%${search}%'`
+      , function (err, result) {
+        if (err) {
+          console.log(err.message);
+          res.status(201).json({
+            status: 0,
+            message: err.message,
+          });
+        } else {
+          res.status(200).json({
+            status: 1,
+            message: "user list retrieved successfully!",
+            list: result,
+          });
+        }
+      });   
     }else{
       connection.query("SELECT user.*, profile.userId AS profileUserId,profile.profileId,profile.dob,profile.fullName,profile.accountNumber,profile.bankName,profile.tn_rn,profile.about,profile.profilePic FROM user LEFT JOIN profile ON user.userId = profile.userId", function (err, result) {
         if (err) {

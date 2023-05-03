@@ -3,7 +3,7 @@ const controllers = require("../controllers");
 
 const router = express.Router();
 
-router.get("/get", controllers.industry.get);
+router.post("/get", controllers.industry.get);
 router.post("/add", controllers.industry.add);
 router.get("/industrywithjobs", controllers.industry.industrywithjobs);
 

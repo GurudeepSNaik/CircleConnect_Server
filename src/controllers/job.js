@@ -34,7 +34,7 @@ module.exports = {
                   res.status(200).json({
                     status: 1,
                     message: "Jobs Retrived Successfully",
-                    job: result,
+                    list: result,
                   });
                 } else {
                   res.status(201).json({

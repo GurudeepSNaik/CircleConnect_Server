@@ -2,7 +2,7 @@ const connection = require("../../config/connection.js");
 
 module.exports = {
   get: function (req, res) {
-    let { industry = null } = req.body;
+    let { industry = null,search="" } = req.body;
     try {
       if (industry) {
         connection.query(
@@ -21,6 +21,39 @@ module.exports = {
                     status: 1,
                     message: "Industries Retrived Successfully",
                     industries: result,
+                  });
+                } else {
+                  res.status(201).json({
+                    status: 0,
+                    message: "No Industries Found",
+                  });
+                }
+              } else {
+                res.status(201).json({
+                  status: 0,
+                  message: "No Industries Found",
+                });
+              }
+            }
+          }
+        );
+      }else if(search){
+        connection.query(
+          `SELECT * FROM industry WHERE industry LIKE '%${search}%';`,
+          async function (err, result) {
+            if (err) {
+              console.log(err.message);
+              res.status(201).json({
+                status: 0,
+                message: err.message,
+              });
+            } else {
+              if (result.length > 0) {
+                if (result) {
+                  res.status(200).json({
+                    status: 1,
+                    message: "Industries Retrived Successfully",
+                    list: result,
                   });
                 } else {
                   res.status(201).json({

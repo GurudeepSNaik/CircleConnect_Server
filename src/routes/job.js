@@ -3,7 +3,7 @@ const controllers = require("../controllers");
 
 const router = express.Router();
 
-router.get("/search", controllers.job.search);
+router.post("/search", controllers.job.search);
 router.post("/add", controllers.job.add);
 
 module.exports = router;
