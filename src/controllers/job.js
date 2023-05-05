@@ -169,4 +169,41 @@ module.exports = {
       });
     }
   },
+  delete:function(req,res){
+    try {
+      const id = req.params.id;
+      if (id) {
+        const query = `
+        DELETE FROM job where jobId = ${id};
+        SELECT j.*, i.industry
+          FROM job j
+          JOIN industry i ON j.category = i.industryId;`;
+        connection.query(query, async function (err, result) {
+          if (err) {
+            console.log(err.message);
+            res.status(201).json({
+              status: 0,
+              message: err.message,
+            });
+          } else {
+            res.status(200).json({
+              status: 1,
+              message: "Job Deleted successfully",
+              list:result[1]
+            });
+          }
+        });
+      } else {
+        res.status(201).json({
+          status: 0,
+          message: "Id is Required",
+        });
+      }
+    } catch (error) {
+      res.status(201).json({
+        status: 0,
+        message: error.message,
+      });
+    }
+  }
 };
