@@ -21,18 +21,25 @@ module.exports = {
             } else {
               if (result.length > 0) {
                 if (result[0]) {
-                  if(result[0].password===password){
-                    res.status(200).json({
-                      status: 1,
-                      message: "Your login was successful.",
-                      role: result[0].type,
-                      id: result[0].userId,
-                    });
-                  }else{
+                  if(result[0].verified==="false"){
                     res.status(201).json({
                       status: 0,
-                      message: "Password Doesn't Match",
+                      message: "User Has Not Been Verified",
                     });
+                  }else{
+                    if(result[0].password===password){
+                      res.status(200).json({
+                        status: 1,
+                        message: "Your login was successful.",
+                        role: result[0].type,
+                        id: result[0].userId,
+                      });
+                    }else{
+                      res.status(201).json({
+                        status: 0,
+                        message: "Password Doesn't Match",
+                      });
+                    }
                   }
                 } else {
                   res.status(201).json({
@@ -72,7 +79,7 @@ module.exports = {
       country,
       province,
       city,
-      pin,
+      // pin,
     } = req.body;
     try {
       if (
@@ -83,8 +90,9 @@ module.exports = {
         email &&
         country &&
         province &&
-        city &&
-        pin
+        city
+        //  &&
+        // pin
       ) {
         email=email.toLowerCase();
         connection.query(`SELECT email from user`, function (err, result) {
@@ -101,7 +109,7 @@ module.exports = {
           if (response.length === 0) {
             OTP = generateRandomNumber(6);
             connection.query(
-              `Insert into user(name,email,type,mobile,password,city,createdAt,updatedAt,status,pin,verified,country,province,otp) values("${username}","${email}","${type}","${mobile}","${password}","${city}", NOW(), NOW(),1,"${pin}","${false}","${country}","${province}",${OTP});`,
+              `Insert into user(name,email,type,mobile,password,city,createdAt,updatedAt,status,verified,country,province,otp) values("${username}","${email}","${type}","${mobile}","${password}","${city}", NOW(), NOW(),1,"${false}","${country}","${province}",${OTP});`,
               function (err, result) {
                 if (err) {
                   console.log(err.message);
