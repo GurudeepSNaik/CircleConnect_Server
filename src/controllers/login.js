@@ -21,12 +21,19 @@ module.exports = {
             } else {
               if (result.length > 0) {
                 if (result[0]) {
-                  res.status(200).json({
-                    status: 1,
-                    message: "Your login was successful.",
-                    role: result[0].type,
-                    id: result[0].userId,
-                  });
+                  if(result[0].password===password){
+                    res.status(200).json({
+                      status: 1,
+                      message: "Your login was successful.",
+                      role: result[0].type,
+                      id: result[0].userId,
+                    });
+                  }else{
+                    res.status(201).json({
+                      status: 0,
+                      message: "Password Doesn't Match",
+                    });
+                  }
                 } else {
                   res.status(201).json({
                     status: 0,
