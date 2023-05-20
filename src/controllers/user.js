@@ -188,4 +188,64 @@ module.exports = {
       });
     }
   },
+  providersJobs:async function(req,res){
+    try {
+      let {userId, length = 10, page = 1, sortBy = "createdAt", sortType = "ascending" }=req.query;
+      if(userId){
+        length=parseInt(length);
+        page=parseInt(page);
+        let skip = (page - 1) * length;
+        let sortOrder = sortType === "descending" ? "DESC" : "ASC";
+        const query =
+        `SELECT j.*, i.industry
+        FROM job j
+        JOIN industry i ON j.category = i.industryId
+        WHERE userId=${userId}
+        ORDER BY ${sortBy} ${sortOrder}
+        LIMIT ${skip}, ${length}`;
+      connection.query(query, (err, result) => {
+        if (err) {
+          console.log(err);
+          res.status(201).json({
+            status: 0,
+            message: err.message,
+          });
+        } else {
+          const totalCountQuery = `SELECT COUNT(*) AS totalCount FROM job WHERE userId=${userId}`;
+          connection.query(totalCountQuery, (countErr, countResult) => {
+            if (countErr) {
+              console.log(countErr);
+              res.status(201).json({
+                status: 0,
+                message: countErr.message,
+              });
+            } else {
+              const totalCount = countResult[0].totalCount;
+              res.status(200).json({
+                status: 1,
+                message: "Jobs Retrieved Successfully",
+                list: result,
+                count: result.length || 0,
+                totalCount: totalCount,
+                from:skip,
+                to:skip+length,
+                page:page
+              });
+            }
+          });
+        }
+      });
+      }else{
+        res.status(200).json({
+          status: 0,
+          message:"userId is a required Field"
+        });
+      }
+    } catch (error) {
+      res.status(201).json({
+        status: 0,
+        message: error.message,
+      });
+    }
+  }
 };
