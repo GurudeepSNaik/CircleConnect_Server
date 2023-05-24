@@ -87,8 +87,8 @@ module.exports = {
       dressCode,
       dateAndTime,
       noa,
-      fixedCost,
-      variableCost,
+      fixedCost="",
+      variableCost="",
       tnc,
       requiredSkill,
       minExp,
@@ -105,8 +105,8 @@ module.exports = {
         dressCode &&
         dateAndTime &&
         noa &&
-        fixedCost &&
-        variableCost &&
+        // fixedCost &&
+        // variableCost &&
         tnc &&
         requiredSkill &&
         minExp &&

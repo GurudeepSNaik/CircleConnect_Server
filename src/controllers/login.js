@@ -33,6 +33,7 @@ module.exports = {
                         message: "Your login was successful.",
                         role: result[0].type,
                         id: result[0].userId,
+                        username:result[0].name
                       });
                     }else{
                       res.status(201).json({
