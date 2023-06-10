@@ -9,12 +9,13 @@ module.exports = {
           `SELECT j.*, i.industry
           FROM job j
           JOIN industry i ON j.category = i.industryId
-          WHERE i.industry LIKE '%${search}%' 
+          WHERE (i.industry LIKE '%${search}%' 
             OR j.companyName LIKE '%${search}%'
             OR j.requiredSkill LIKE '%${search}%'
             OR j.jobType LIKE '%${search}%'
             OR j.location LIKE '%${search}%'
-            ${search === "popular" ? "OR j.popular = 1" : ""}
+            ${search === "popular" ? "OR j.popular = 1" : ""})
+            AND j.status = 1
           ;`,
           async function (err, result) {
             if (err) {
@@ -55,7 +56,8 @@ module.exports = {
         const query =
           `SELECT j.*, i.industry
           FROM job j
-          JOIN industry i ON j.category = i.industryId`;
+          JOIN industry i ON j.category = i.industryId 
+          WHERE j.status = 1`;
         connection.query(query, (err, result) => {
           if (err) {
             console.log(err);
@@ -217,8 +219,10 @@ module.exports = {
       const query = `SELECT j.*, i.industry
         FROM job j
         JOIN industry i ON j.category = i.industryId
+        WHERE j.status = 1
         ORDER BY ${sortBy} ${sortOrder}
-        LIMIT ${skip}, ${length}`;
+        LIMIT ${skip}, ${length}
+        `;
       connection.query(query, (err, result) => {
         if (err) {
           console.log(err);
@@ -227,7 +231,7 @@ module.exports = {
             message: err.message,
           });
         } else {
-          const totalCountQuery = `SELECT COUNT(*) AS totalCount FROM job`;
+          const totalCountQuery = `SELECT COUNT(*) AS totalCount FROM job WHERE status = 1`;
           connection.query(totalCountQuery, (countErr, countResult) => {
             if (countErr) {
               console.log(countErr);
@@ -294,5 +298,14 @@ module.exports = {
         message: error.message,
       });
     }
+  },
+  activeJobs: function(req,res){
+   const query=`SELECT j.*
+   FROM Job j
+   INNER JOIN Application a ON j.jobId = a.applicationjobId
+   WHERE a.accepted = 1`
+  },
+  inActiveJobs:function (req,res){
+
   }
 };

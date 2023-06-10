@@ -193,7 +193,7 @@ module.exports = {
     try {
         connection.query(
           `SELECT * FROM industry;
-           SELECT * FROM Job;`,
+           SELECT * FROM Job WHERE status = 1;`,
           async function (err, result) {
             if (err) {
               console.log(err.message);

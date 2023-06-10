@@ -31,6 +31,7 @@ app.use('/user', route.user)
 app.use('/job', route.job)
 app.use('/industry', route.industry)
 app.use('/profile', upload.any() , route.profile)
+app.use('/application', upload.any() , route.application)
 
 
 
