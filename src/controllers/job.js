@@ -53,8 +53,7 @@ module.exports = {
           }
         );
       } else {
-        const query =
-          `SELECT j.*, i.industry
+        const query = `SELECT j.*, i.industry
           FROM job j
           JOIN industry i ON j.category = i.industryId 
           WHERE j.status = 1`;
@@ -89,8 +88,8 @@ module.exports = {
       dressCode,
       dateAndTime,
       noa,
-      fixedCost="",
-      variableCost="",
+      fixedCost = "",
+      variableCost = "",
       tnc,
       requiredSkill,
       minExp,
@@ -171,7 +170,7 @@ module.exports = {
       });
     }
   },
-  delete:function(req,res){
+  delete: function (req, res) {
     try {
       const id = req.params.id;
       if (id) {
@@ -191,7 +190,7 @@ module.exports = {
             res.status(200).json({
               status: 1,
               message: "Job Deleted successfully",
-              list:result[1]
+              list: result[1],
             });
           }
         });
@@ -208,14 +207,19 @@ module.exports = {
       });
     }
   },
-  list:function(req,res){
-    let { length = 10, page = 1, sortBy = "createdAt", sortType = "ascending" } = req.query;
+  list: function (req, res) {
+    let {
+      length = 10,
+      page = 1,
+      sortBy = "createdAt",
+      sortType = "ascending",
+    } = req.query;
     try {
-      length=parseInt(length);
-      page=parseInt(page);
+      length = parseInt(length);
+      page = parseInt(page);
       let skip = (page - 1) * length;
       let sortOrder = sortType === "descending" ? "DESC" : "ASC";
-      
+
       const query = `SELECT j.*, i.industry
         FROM job j
         JOIN industry i ON j.category = i.industryId
@@ -247,9 +251,9 @@ module.exports = {
                 list: result,
                 count: result.length || 0,
                 totalCount: totalCount,
-                from:skip,
-                to:skip+length,
-                page:page
+                from: skip,
+                to: skip + length,
+                page: page,
               });
             }
           });
@@ -262,15 +266,47 @@ module.exports = {
       });
     }
   },
-  details:function(req,res){
+  details: function (req, res) {
     try {
-      const {id}=req.query;
-      if(id){
-        const query =
-        `SELECT j.*, i.industry
+      const { id } = req.query;
+      if (id) {
+        const query = `SELECT j.*, i.industry
         FROM job j
         JOIN industry i ON j.category = i.industryId
         WHERE jobId=${id}`;
+        connection.query(query, (err, result) => {
+          if (err) {
+            console.log(err);
+            res.status(201).json({
+              status: 0,
+              message: err.message,
+            });
+          } else {
+            res.status(200).json({
+              status: 1,
+              message: "Job Retrieved Successfully",
+              detail: result[0],
+            });
+          }
+        });
+      } else {
+        res.status(200).json({
+          status: 0,
+          message: "Id is a required Field",
+        });
+      }
+    } catch (error) {
+      res.status(201).json({
+        status: 0,
+        message: error.message,
+      });
+    }
+  },
+  activeJobs: function (req, res) {
+    try {
+      const query = `SELECT *
+      FROM Job
+      WHERE jobId IN (SELECT applicationjobId FROM Application WHERE accepted = 1);`;
       connection.query(query, (err, result) => {
         if (err) {
           console.log(err);
@@ -281,31 +317,45 @@ module.exports = {
         } else {
           res.status(200).json({
             status: 1,
-            message: "Job Retrieved Successfully",
-            detail: result[0],
+            message: "Active Jobs Retrieved Successfully",
+            list: result,
           });
         }
       });
-      }else{
-        res.status(200).json({
-          status: 0,
-          message:"Id is a required Field"
-        });
-      }
     } catch (error) {
+      console.log(error);
       res.status(201).json({
         status: 0,
         message: error.message,
       });
     }
   },
-  activeJobs: function(req,res){
-   const query=`SELECT j.*
-   FROM Job j
-   INNER JOIN Application a ON j.jobId = a.applicationjobId
-   WHERE a.accepted = 1`
+  inActiveJobs: function (req, res) {
+    try {
+      const query = `SELECT *
+      FROM Job
+      WHERE JobId NOT IN (SELECT JobId FROM Application WHERE Accepted = 1);`;
+      connection.query(query, (err, result) => {
+        if (err) {
+          console.log(err);
+          res.status(201).json({
+            status: 0,
+            message: err.message,
+          });
+        } else {
+          res.status(200).json({
+            status: 1,
+            message: "In Active Jobs Retrieved Successfully",
+            list: result,
+          });
+        }
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(201).json({
+        status: 0,
+        message: err.message,
+      });
+    }
   },
-  inActiveJobs:function (req,res){
-
-  }
 };

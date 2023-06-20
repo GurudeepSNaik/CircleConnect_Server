@@ -5,6 +5,8 @@ const router = express.Router();
 
 router.get("/list", controllers.job.list);
 router.get("/details", controllers.job.details);
+router.get("/activeJobs", controllers.job.activeJobs);
+router.get("/inActiveJobs", controllers.job.inActiveJobs);
 router.post("/search", controllers.job.search);
 router.post("/add", controllers.job.add);
 router.delete("/delete/:id", controllers.job.delete);
