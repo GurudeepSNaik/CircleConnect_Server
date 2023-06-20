@@ -57,6 +57,7 @@ module.exports = {
 
         const query = `
           SELECT 
+          application.id AS applicationId,
           application.coverletter,
           application.applicationjobId,
           application.applicationuserId,
