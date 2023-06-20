@@ -3,7 +3,6 @@ const industry = require("./industry")
 const job = require("./job")
 const profile = require("./profile")
 const user = require("./user")
-const usertype = require("./usertype")
 const application = require("./application")
 
 module.exports = {
@@ -12,7 +11,6 @@ module.exports = {
   job,
   profile,
   user,
-  usertype,
   application
   };
 

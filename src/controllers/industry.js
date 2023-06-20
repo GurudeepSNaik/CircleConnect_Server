@@ -2,7 +2,7 @@ const connection = require("../../config/connection.js");
 
 module.exports = {
   get: function (req, res) {
-    let { industry = null,search="" } = req.body;
+    let { industry = null , search="" } = req.body;
     try {
       if (industry) {
         connection.query(
@@ -193,7 +193,7 @@ module.exports = {
     try {
         connection.query(
           `SELECT * FROM industry;
-           SELECT * FROM Job WHERE status = 1;`,
+           SELECT * FROM job WHERE status = 1;`,
           async function (err, result) {
             if (err) {
               console.log(err.message);

@@ -80,7 +80,6 @@ module.exports = {
       country,
       province,
       city,
-      // pin,
     } = req.body;
     try {
       if (
@@ -92,8 +91,6 @@ module.exports = {
         country &&
         province &&
         city
-        //  &&
-        // pin
       ) {
         email=email.toLowerCase();
         connection.query(`SELECT email from user`, function (err, result) {
