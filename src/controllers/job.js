@@ -304,9 +304,10 @@ module.exports = {
   },
   activeJobs: function (req, res) {
     try {
+      const {userId}=req.query;
       const query = `SELECT *
-      FROM Job
-      WHERE jobId IN (SELECT applicationjobId FROM Application WHERE accepted = 1);`;
+      FROM job
+      WHERE jobId IN (SELECT applicationjobId FROM application WHERE accepted = 1) AND userId = ${userId};`;
       connection.query(query, (err, result) => {
         if (err) {
           console.log(err);
@@ -332,9 +333,10 @@ module.exports = {
   },
   inActiveJobs: function (req, res) {
     try {
+      const {userId}=req.query;
       const query = `SELECT *
-      FROM Job
-      WHERE JobId NOT IN (SELECT JobId FROM Application WHERE Accepted = 1);`;
+      FROM job
+      WHERE jobId NOT IN (SELECT applicationjobId FROM application WHERE Accepted = 1) AND userId = ${userId};`;
       connection.query(query, (err, result) => {
         if (err) {
           console.log(err);
