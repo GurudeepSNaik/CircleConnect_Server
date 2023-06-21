@@ -305,24 +305,31 @@ module.exports = {
   activeJobs: function (req, res) {
     try {
       const {userId}=req.query;
-      const query = `SELECT *
-      FROM job
-      WHERE jobId IN (SELECT applicationjobId FROM application WHERE accepted = 1) AND userId = ${userId};`;
-      connection.query(query, (err, result) => {
-        if (err) {
-          console.log(err);
-          res.status(201).json({
-            status: 0,
-            message: err.message,
-          });
-        } else {
-          res.status(200).json({
-            status: 1,
-            message: "Active Jobs Retrieved Successfully",
-            list: result,
-          });
-        }
-      });
+      if(userId){
+        const query = `SELECT *
+        FROM job
+        WHERE jobId IN (SELECT applicationjobId FROM application WHERE accepted = 1) AND userId = ${userId};`;
+        connection.query(query, (err, result) => {
+          if (err) {
+            console.log(err);
+            res.status(201).json({
+              status: 0,
+              message: err.message,
+            });
+          } else {
+            res.status(200).json({
+              status: 1,
+              message: "Active Jobs Retrieved Successfully",
+              list: result,
+            });
+          }
+        });
+      }else{
+        res.status(201).json({
+          status: 0,
+          message: "userId is a required Field",
+        });
+      }
     } catch (error) {
       console.log(error);
       res.status(201).json({
@@ -334,24 +341,31 @@ module.exports = {
   inActiveJobs: function (req, res) {
     try {
       const {userId}=req.query;
-      const query = `SELECT *
-      FROM job
-      WHERE jobId NOT IN (SELECT applicationjobId FROM application WHERE Accepted = 1) AND userId = ${userId};`;
-      connection.query(query, (err, result) => {
-        if (err) {
-          console.log(err);
-          res.status(201).json({
-            status: 0,
-            message: err.message,
-          });
-        } else {
-          res.status(200).json({
-            status: 1,
-            message: "In Active Jobs Retrieved Successfully",
-            list: result,
-          });
-        }
-      });
+      if(userId){
+        const query = `SELECT *
+        FROM job
+        WHERE jobId NOT IN (SELECT applicationjobId FROM application WHERE Accepted = 1) AND userId = ${userId};`;
+        connection.query(query, (err, result) => {
+          if (err) {
+            console.log(err);
+            res.status(201).json({
+              status: 0,
+              message: err.message,
+            });
+          } else {
+            res.status(200).json({
+              status: 1,
+              message: "In Active Jobs Retrieved Successfully",
+              list: result,
+            });
+          }
+        });
+      }else{
+        res.status(201).json({
+          status: 0,
+          message: "userId is a required Field",
+        });
+      }
     } catch (err) {
       console.log(err);
       res.status(201).json({
@@ -360,4 +374,83 @@ module.exports = {
       });
     }
   },
+  activeJobsForWorker: function (req,res){
+    try {
+      const {userId}=req.query;
+      if(userId){
+        const query = `SELECT *
+        FROM job
+        WHERE jobId IN (
+            SELECT applicationjobId
+            FROM application
+            WHERE applicationuserId = ${userId}
+                AND accepted = 1
+        )`;
+        connection.query(query, (err, result) => {
+          if (err) {
+            console.log(err);
+            res.status(201).json({
+              status: 0,
+              message: err.message,
+            });
+          } else {
+            res.status(200).json({
+              status: 1,
+              message: "Active Jobs Retrieved Successfully",
+              list: result,
+            });
+          }
+        });
+      }else{
+        res.status(201).json({
+          status: 0,
+          message: "userId is a required Field",
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      res.status(201).json({
+        status: 0,
+        message: error.message,
+      });
+    }
+  },
+  completedJobsForWorker:function(req,res){
+    try {
+      const {userId}=req.query;
+      if(userId){
+          res.status(200).json({
+            status: 1,
+            message: "Completed Jobs Retrieved Successfully",
+            list: [],
+          });
+      }else{
+
+      }
+      // const query = `SELECT *
+      // FROM job
+      // WHERE jobId IN (SELECT applicationjobId FROM application WHERE accepted = 1) AND userId = ${userId};`;
+      // connection.query(query, (err, result) => {
+      //   if (err) {
+      //     console.log(err);
+      //     res.status(201).json({
+      //       status: 0,
+      //       message: err.message,
+      //     });
+      //   } else {
+      //     res.status(200).json({
+      //       status: 1,
+      //       message: "Active Jobs Retrieved Successfully",
+      //       list: result,
+      //     });
+      //   }
+      // });
+    } catch (error) {
+      console.log(error);
+      res.status(201).json({
+        status: 0,
+        message: error.message,
+      });
+    }
+  }
 };

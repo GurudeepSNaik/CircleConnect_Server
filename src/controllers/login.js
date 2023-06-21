@@ -1,6 +1,7 @@
 const connection = require("../../config/connection.js");
 const { sendMail, generateRandomNumber } = require("../utils");
 const { Country, State } = require("country-state-city");
+const jwt = require("jsonwebtoken");
 
 let OTP = null;
 module.exports = {
@@ -28,12 +29,24 @@ module.exports = {
                     });
                   }else{
                     if(result[0].password===password){
+                      const payload={
+                        role:result[0].type,
+                        id:result[0].userId,
+                        username:result[0].name
+                      }
+
+                      const token = jwt.sign(payload, process.env.TOKEN_KEY, {
+                        algorithm: "HS512",
+                        expiresIn: '10d',
+                      });
+
                       res.status(200).json({
                         status: 1,
                         message: "Your login was successful.",
                         role: result[0].type,
                         id: result[0].userId,
-                        username:result[0].name
+                        username:result[0].name,
+                        token:token
                       });
                     }else{
                       res.status(201).json({
@@ -176,11 +189,22 @@ module.exports = {
                           message: err.message,
                         });
                       } else {
+                        const payload={
+                          role:data.type,
+                          id:data.userId,
+                          username:data.name
+                        }
+  
+                        const token = jwt.sign(payload, process.env.TOKEN_KEY, {
+                          algorithm: "HS512",
+                          expiresIn: '10d',
+                        });
                         res.status(200).json({
                           status: 1,
                           message: "Your login was successful.",
                           role: data.type,
                           id: data.userId,
+                          token:token
                         });
                       }
                     }

@@ -144,15 +144,14 @@ module.exports = {
     try {
       const {
         applicationId = false,
-        accepted = false,
-        rejected = false,
+        accepted,
       } = req.body;
       if (applicationId) {
         let query;
-        if (accepted) {
+        if (accepted===true) {
           query = `UPDATE application SET accepted = true,rejected = false WHERE id = ${applicationId};`;
         }
-        if (rejected) {
+        if (accepted===false) {
           query = `UPDATE application SET accepted = false,rejected = true WHERE id = ${applicationId};`;
         }
         query += `SELECT applicationjobId
