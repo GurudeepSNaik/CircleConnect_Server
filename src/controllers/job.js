@@ -270,25 +270,68 @@ module.exports = {
     try {
       const { id } = req.query;
       if (id) {
-        const query = `SELECT j.*, i.industry
-        FROM job j
-        JOIN industry i ON j.category = i.industryId
-        WHERE jobId=${id}`;
-        connection.query(query, (err, result) => {
-          if (err) {
-            console.log(err);
-            res.status(201).json({
-              status: 0,
-              message: err.message,
-            });
-          } else {
-            res.status(200).json({
+        const jobQuery = `SELECT j.*, i.industry
+                          FROM job j
+                          JOIN industry i ON j.category = i.industryId
+                          WHERE jobId=${id}`;
+
+        const acceptedApplicantsQuery = `SELECT a.*
+                                           FROM application a
+                                           WHERE a.applicationjobId = ${id} AND a.accepted = 1`;
+
+        const pendingApplicantsQuery = `SELECT a.*
+                                          FROM application a
+                                          WHERE a.applicationjobId = ${id} AND a.accepted = 0 AND a.rejected = 0`;
+
+        const allApplicantsQuery = `SELECT a.*
+                                      FROM application a
+                                      WHERE a.applicationjobId = ${id}`;
+
+        const rejectedApplicantsQuery = `SELECT a.*
+                                           FROM application a
+                                           WHERE a.applicationjobId = ${id} AND a.rejected = 1`;
+
+        const reviewQuery = `SELECT a.job_review
+                               FROM application a
+                               WHERE a.applicationjobId = ${id} AND a.job_review IS NOT NULL`;
+
+        const ratingQuery = `SELECT AVG(a.job_rating) AS avg_rating
+                               FROM application a
+                               WHERE a.applicationjobId = ${id}`;
+
+        connection.query(
+          `${jobQuery}; ${acceptedApplicantsQuery}; ${pendingApplicantsQuery}; ${allApplicantsQuery}; ${rejectedApplicantsQuery}; ${ratingQuery}; ${reviewQuery}`,
+          (err, results) => {
+            if (err) {
+              console.log(err);
+              return res.status(201).json({
+                status: 0,
+                message: err.message,
+              });
+            }
+
+            const [
+              jobResult,
+              acceptedApplicants,
+              pendingApplicants,
+              allApplicants,
+              rejectedApplicants,
+              [rating],
+              reviews,
+            ] = results;
+            return res.status(200).json({
               status: 1,
               message: "Job Retrieved Successfully",
-              detail: result[0],
+              detail: jobResult[0],
+              acceptedApplicants,
+              pendingApplicants,
+              allApplicants,
+              rejectedApplicants,
+              rating:rating?.avg_rating || 0,
+              reviews,
             });
           }
-        });
+        );
       } else {
         res.status(200).json({
           status: 0,
@@ -304,8 +347,8 @@ module.exports = {
   },
   activeJobs: function (req, res) {
     try {
-      const {userId}=req.query;
-      if(userId){
+      const { userId } = req.query;
+      if (userId) {
         const query = `SELECT *
         FROM job
         WHERE jobId IN (SELECT applicationjobId FROM application WHERE accepted = 1) AND userId = ${userId};`;
@@ -324,7 +367,7 @@ module.exports = {
             });
           }
         });
-      }else{
+      } else {
         res.status(201).json({
           status: 0,
           message: "userId is a required Field",
@@ -340,8 +383,8 @@ module.exports = {
   },
   inActiveJobs: function (req, res) {
     try {
-      const {userId}=req.query;
-      if(userId){
+      const { userId } = req.query;
+      if (userId) {
         const query = `SELECT *
         FROM job
         WHERE jobId NOT IN (SELECT applicationjobId FROM application WHERE Accepted = 1) AND userId = ${userId};`;
@@ -360,7 +403,7 @@ module.exports = {
             });
           }
         });
-      }else{
+      } else {
         res.status(201).json({
           status: 0,
           message: "userId is a required Field",
@@ -374,10 +417,10 @@ module.exports = {
       });
     }
   },
-  activeJobsForWorker: function (req,res){
+  activeJobsForWorker: function (req, res) {
     try {
-      const {userId}=req.query;
-      if(userId){
+      const { userId } = req.query;
+      if (userId) {
         const query = `SELECT *
         FROM job
         WHERE jobId IN (
@@ -401,7 +444,7 @@ module.exports = {
             });
           }
         });
-      }else{
+      } else {
         res.status(201).json({
           status: 0,
           message: "userId is a required Field",
@@ -415,17 +458,16 @@ module.exports = {
       });
     }
   },
-  completedJobsForWorker:function(req,res){
+  completedJobsForWorker: function (req, res) {
     try {
-      const {userId}=req.query;
-      if(userId){
-          res.status(200).json({
-            status: 1,
-            message: "Completed Jobs Retrieved Successfully",
-            list: [],
-          });
-      }else{
-
+      const { userId } = req.query;
+      if (userId) {
+        res.status(200).json({
+          status: 1,
+          message: "Completed Jobs Retrieved Successfully",
+          list: [],
+        });
+      } else {
       }
       // const query = `SELECT *
       // FROM job
@@ -452,5 +494,77 @@ module.exports = {
         message: error.message,
       });
     }
-  }
+  },
+  rating: function (req, res) {
+    try {
+      const { applicationid, rating, review,type } = req.body;
+      if (!applicationid) {
+        return res.status(201).json({
+          status: 0,
+          message: "application id is Required, Note:user Must be a worker",
+        });
+      }
+      if (!rating || !review) {
+        return res.status(201).json({
+          status: 0,
+          message: "Rating And Review is Required",
+        });
+      }
+      if(!type==="JOB_RATING" || !type==="APPLICANT_RATING"){
+        return res.status(201).json({
+          status: 0,
+          message: "Type Must Be Either JOB_RATING or APPLICANT_RATING",
+        });
+      }
+
+      if(type==="JOB_RATING"){
+        const updateQuery = `UPDATE application
+        SET job_rating = ${rating}, job_review = "${review}"
+        WHERE id = ${applicationid}`;
+  
+        connection.query(updateQuery, (updateErr, updateResult) => {
+          if (updateErr) {
+            console.log(updateErr);
+            return res.status(201).json({
+              status: 0,
+              message: updateErr.message,
+            });
+          }
+  
+          return res.status(200).json({
+            status: 1,
+            message: "Ratings and Review Updated Successfully",
+            details: updateResult,
+          });
+        });
+      }
+      if(type==="APPLICANT_RATING"){
+        const updateQuery = `UPDATE application
+        SET applicant_rating = ${rating}, applicant_review = "${review}"
+        WHERE id = ${applicationid}`;
+  
+        connection.query(updateQuery, (updateErr, updateResult) => {
+          if (updateErr) {
+            console.log(updateErr);
+            return res.status(201).json({
+              status: 0,
+              message: updateErr.message,
+            });
+          }
+  
+          return res.status(200).json({
+            status: 1,
+            message: "Ratings and Review Updated Successfully",
+            details: updateResult,
+          });
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      res.status(201).json({
+        status: 0,
+        message: error.message,
+      });
+    }
+  },
 };

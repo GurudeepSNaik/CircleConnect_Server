@@ -11,6 +11,7 @@ router.get("/activeJobsForWorker", controllers.job.activeJobsForWorker);
 router.get("/completedJobsForWorker", controllers.job.completedJobsForWorker);
 router.post("/search", controllers.job.search);
 router.post("/add", controllers.job.add);
+router.post("/rating", controllers.job.rating);
 router.delete("/delete/:id", controllers.job.delete);
 
 module.exports = router;
