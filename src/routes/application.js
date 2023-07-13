@@ -5,6 +5,7 @@ const router = express.Router();
 
 router.post("/apply", controllers.application.apply);
 router.get("/applicants", controllers.application.getApplicants);
+router.get("/getApplications", controllers.application.getApplications);
 router.get("/applicationWithApplicantDetails", controllers.application.getApplicationWithApplicantDetails);
 router.post("/approveorreject", controllers.application.approveorreject);
 

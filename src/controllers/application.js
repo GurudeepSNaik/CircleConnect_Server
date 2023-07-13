@@ -1,4 +1,6 @@
 const connection = require("../../config/connection.js");
+const executeQuery = require("../utils/executeQuery.js");
+const queries = require("../utils/queries.js");
 
 module.exports = {
   apply: async function (req, res) {
@@ -142,16 +144,13 @@ module.exports = {
   },
   approveorreject: function (req, res) {
     try {
-      const {
-        applicationId = false,
-        accepted,
-      } = req.body;
+      const { applicationId = false, accepted } = req.body;
       if (applicationId) {
         let query;
-        if (accepted===true) {
+        if (accepted === true) {
           query = `UPDATE application SET accepted = true,rejected = false WHERE id = ${applicationId};`;
         }
-        if (accepted===false) {
+        if (accepted === false) {
           query = `UPDATE application SET accepted = false,rejected = true WHERE id = ${applicationId};`;
         }
         query += `SELECT applicationjobId
@@ -221,7 +220,7 @@ module.exports = {
     }
   },
   getApplicationWithApplicantDetails: function (req, res) {
-    let {  applicationId = false } = req.query;
+    let { applicationId = false } = req.query;
     try {
       if (applicationId) {
         const query = `
@@ -253,7 +252,7 @@ module.exports = {
           FROM application
           JOIN user ON application.applicationuserId = user.userId
           JOIN job ON application.applicationjobId = job.jobId
-          WHERE application.id = ${applicationId }
+          WHERE application.id = ${applicationId}
           AND application.rejected != ${1};
         `;
 
@@ -284,5 +283,49 @@ module.exports = {
         message: error.message,
       });
     }
-  }
+  },
+  getApplications: async function (req, res) {
+    let {
+      length = 10,
+      page = 1,
+      sortBy = "createdAt",
+      sortType = "ascending",
+      search = false,
+    } = req.query;
+    try {
+      length = parseInt(length);
+      page = parseInt(page);
+      let skip = (page - 1) * length;
+      let sortOrder = sortType === "descending" ? "DESC" : "ASC";
+      if (search === "" || search === "false") search = false;
+      let query;
+      if (search) {
+        query = queries.GET_APPLICATIONS_WITH_SORTBY_SORTORDER_LENGTH_SKIP(
+          sortBy,
+          sortOrder,
+          length,
+          skip,
+          search
+        );
+      } else {
+        query = queries.GET_APPLICATIONS_WITH_SORTBY_SORTORDER_LENGTH_SKIP(
+          sortBy,
+          sortOrder,
+          length,
+          skip
+        );
+      }
+      const result = await executeQuery(query);
+      res.status(200).json({
+        status: 1,
+        message: "Applications retrieved successfully",
+        list: result,
+      });      
+    } catch (error) {
+      res.status(201).json({
+        status: 0,
+        message: error.message,
+      });
+    }
+  },
 };
