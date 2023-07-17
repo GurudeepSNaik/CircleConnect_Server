@@ -72,5 +72,47 @@ module.exports = {
 `),
 CREATE_EMPTY_PROFILE_WITH_USERID:(userId)=>(`INSERT INTO profile (userId, createdAt, updatedAt, status)
 VALUES (${userId}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1);
+`),
+GET_RECENT_APPLICANT_WITH_OWNER_ID:(userId,length, skip, sortBy,sortOrder)=>( `
+SELECT 
+application.id AS applicationId,
+application.coverletter,
+application.applicationjobId,
+application.applicationuserId,
+application.applicationownerId,
+user.name AS username,
+user.email AS useremail,
+user.type AS usertype,
+user.mobile AS usermobile,
+user.city AS usercity,
+user.province AS userstate,
+user.country AS usercountry,
+job.companyName AS jobcompanyname,
+job.location AS joblocation,
+job.dressCode AS jobdresscode,
+job.noa AS jobnumberofapplicants,
+job.fixedCost AS jobfixedcost,
+job.variableCost AS jobvariablecost,
+job.tnc AS jobtermsandconditions,
+job.requiredSkill AS jobrequiredskill,
+job.minExp AS jobminexp,
+job.jobType AS jobtype,
+job.popular AS jobpopular,
+job.description AS jobdescription
+FROM application
+JOIN user ON application.applicationuserId = user.userId
+JOIN job ON application.applicationjobId = job.jobId
+WHERE application.applicationownerId = ${userId}
+AND application.rejected = 0
+AND application.accepted = 0
+ORDER BY application.${sortBy} ${sortOrder}
+LIMIT ${length} OFFSET ${skip};
+`),
+COUNT_RECENT_APPLICANT_WITH_OWNER_ID:(userId)=>(`
+SELECT COUNT(*) AS totalCount
+FROM application
+WHERE application.applicationownerId = ${userId}
+AND application.rejected = 0
+AND application.accepted = 0;
 `)
 };

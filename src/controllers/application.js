@@ -320,7 +320,55 @@ module.exports = {
         status: 1,
         message: "Applications retrieved successfully",
         list: result,
-      });      
+      });
+    } catch (error) {
+      res.status(201).json({
+        status: 0,
+        message: error.message,
+      });
+    }
+  },
+  recentApplicants: async function (req, res) {
+    let {
+      length = 10,
+      page = 1,
+      sortBy = "createdAt",
+      sortType = "ascending",
+      userId = false,
+    } = req.query;
+    try {
+      if (userId) {
+        length = parseInt(length);
+        page = parseInt(page);
+        let skip = (page - 1) * length;
+        let sortOrder = sortType === "descending" ? "DESC" : "ASC";
+        const query = queries.GET_RECENT_APPLICANT_WITH_OWNER_ID(
+          userId,
+          length,
+          skip,
+          sortBy,
+          sortOrder
+        );
+        const countQuery = queries.COUNT_RECENT_APPLICANT_WITH_OWNER_ID(userId);
+        const recentapplicants = await executeQuery(query);
+        const countrecentapplicants = await executeQuery(countQuery);
+        const totalcount=countrecentapplicants[0].totalCount
+        res.status(200).json({
+          status: 1,
+          message: "Applicants retrieved successfully",
+          list: recentapplicants,
+          count: recentapplicants.length,
+          totalCount: totalcount,
+          from: skip,
+          to: skip + length,
+          page: page,
+        });
+      } else {
+        res.status(201).json({
+          status: 0,
+          message: "userId is required",
+        });
+      }
     } catch (error) {
       res.status(201).json({
         status: 0,
