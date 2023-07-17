@@ -275,21 +275,45 @@ module.exports = {
                           JOIN industry i ON j.category = i.industryId
                           WHERE jobId=${id}`;
 
-        const acceptedApplicantsQuery = `SELECT a.*
+        const acceptedApplicantsQuery = `SELECT a.*,
+                                          user.fullName AS userFullName,
+                                          user.profilePic AS userProfilePic,
+                                          owner.fullName AS ownerFullName,
+                                          owner.profilePic AS ownerProfilePic
                                            FROM application a
+                                           LEFT JOIN profile user ON a.applicationuserId = user.userId
+                                           LEFT JOIN profile owner ON a.applicationownerId = owner.userId
                                            WHERE a.applicationjobId = ${id} AND a.accepted = 1`;
 
-        const pendingApplicantsQuery = `SELECT a.*
+        const pendingApplicantsQuery = `SELECT a.* ,
+                                          user.fullName AS userFullName,
+                                          user.profilePic AS userProfilePic,
+                                          owner.fullName AS ownerFullName,
+                                          owner.profilePic AS ownerProfilePic
                                           FROM application a
+                                          LEFT JOIN profile user ON a.applicationuserId = user.userId
+                                          LEFT JOIN profile owner ON a.applicationownerId = owner.userId
                                           WHERE a.applicationjobId = ${id} AND a.accepted = 0 AND a.rejected = 0`;
 
-        const allApplicantsQuery = `SELECT a.*
+        const allApplicantsQuery = `SELECT a.*,
+                                      user.fullName AS userFullName,
+                                      user.profilePic AS userProfilePic,
+                                      owner.fullName AS ownerFullName,
+                                      owner.profilePic AS ownerProfilePic
                                       FROM application a
+                                      LEFT JOIN profile user ON a.applicationuserId = user.userId
+                                      LEFT JOIN profile owner ON a.applicationownerId = owner.userId
                                       WHERE a.applicationjobId = ${id}`;
 
-        const rejectedApplicantsQuery = `SELECT a.*
-                                           FROM application a
-                                           WHERE a.applicationjobId = ${id} AND a.rejected = 1`;
+        const rejectedApplicantsQuery = `SELECT a.*,
+                                          user.fullName AS userFullName,
+                                          user.profilePic AS userProfilePic,
+                                          owner.fullName AS ownerFullName,
+                                          owner.profilePic AS ownerProfilePic
+                                          FROM application a
+                                          LEFT JOIN profile user ON a.applicationuserId = user.userId
+                                          LEFT JOIN profile owner ON a.applicationownerId = owner.userId
+                                          WHERE a.applicationjobId = ${id} AND a.rejected = 1`;
 
         const reviewQuery = `SELECT a.job_review
                                FROM application a
@@ -327,7 +351,7 @@ module.exports = {
               pendingApplicants,
               allApplicants,
               rejectedApplicants,
-              rating:rating?.avg_rating || 0,
+              rating: rating?.avg_rating || 0,
               reviews,
             });
           }
@@ -497,7 +521,7 @@ module.exports = {
   },
   rating: function (req, res) {
     try {
-      const { applicationid, rating, review,type } = req.body;
+      const { applicationid, rating, review, type } = req.body;
       if (!applicationid) {
         return res.status(201).json({
           status: 0,
@@ -510,18 +534,18 @@ module.exports = {
           message: "Rating And Review is Required",
         });
       }
-      if(!type==="JOB_RATING" || !type==="APPLICANT_RATING"){
+      if (!type === "JOB_RATING" || !type === "APPLICANT_RATING") {
         return res.status(201).json({
           status: 0,
           message: "Type Must Be Either JOB_RATING or APPLICANT_RATING",
         });
       }
 
-      if(type==="JOB_RATING"){
+      if (type === "JOB_RATING") {
         const updateQuery = `UPDATE application
         SET job_rating = ${rating}, job_review = "${review}"
         WHERE id = ${applicationid}`;
-  
+
         connection.query(updateQuery, (updateErr, updateResult) => {
           if (updateErr) {
             console.log(updateErr);
@@ -530,7 +554,7 @@ module.exports = {
               message: updateErr.message,
             });
           }
-  
+
           return res.status(200).json({
             status: 1,
             message: "Ratings and Review Updated Successfully",
@@ -538,11 +562,11 @@ module.exports = {
           });
         });
       }
-      if(type==="APPLICANT_RATING"){
+      if (type === "APPLICANT_RATING") {
         const updateQuery = `UPDATE application
         SET applicant_rating = ${rating}, applicant_review = "${review}"
         WHERE id = ${applicationid}`;
-  
+
         connection.query(updateQuery, (updateErr, updateResult) => {
           if (updateErr) {
             console.log(updateErr);
@@ -551,7 +575,7 @@ module.exports = {
               message: updateErr.message,
             });
           }
-  
+
           return res.status(200).json({
             status: 1,
             message: "Ratings and Review Updated Successfully",
