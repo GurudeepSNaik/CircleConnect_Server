@@ -246,7 +246,7 @@ module.exports = {
   },
   get: function (req, res) {
     try {
-      const { userId } = req.body;
+      const { userId } = req.query;
       if (userId) {
         const query = `SELECT * FROM profile WHERE userId=${userId};
                        SELECT * FROM qualification WHERE userId=${userId};
