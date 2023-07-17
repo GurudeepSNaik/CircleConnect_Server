@@ -69,5 +69,8 @@ module.exports = {
   FROM application
   WHERE application.rejected != ${1}
   ;
+`),
+CREATE_EMPTY_PROFILE_WITH_USERID:(userId)=>(`INSERT INTO profile (userId, createdAt, updatedAt, status)
+VALUES (${userId}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1);
 `)
 };

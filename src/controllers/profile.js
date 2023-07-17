@@ -1,4 +1,6 @@
 const connection = require("../../config/connection.js");
+const executeQuery = require("../utils/executeQuery.js");
+const queries = require("../utils/queries.js");
 
 module.exports = {
   add: function (req, res) {
@@ -283,7 +285,7 @@ module.exports = {
       });
     }
   },
-  edit: function (req, res) {
+  edit:async function (req, res) {
     let {
       dateofbirth = null,
       fullname = null,
@@ -301,7 +303,7 @@ module.exports = {
       if (userId) {
         experience = JSON.parse(experience);
         const profileQuery = `SELECT COUNT(*) AS count FROM profile WHERE userId = ${userId}`;
-        connection.query(profileQuery, (err, profileResult) => {
+        connection.query(profileQuery, async (err, profileResult) => {
           if (err) {
             console.log(err.message);
             res.status(201).json({
@@ -310,7 +312,10 @@ module.exports = {
             });
           } else {
             const profileExists = profileResult[0].count > 0;
-            if (profileExists) {
+            if (!profileExists) {
+                 const query=queries.CREATE_EMPTY_PROFILE_WITH_USERID(userId);
+                 await executeQuery(query)
+            }
               const query = `SELECT type FROM user WHERE userId=${userId}`;
               connection.query(query, (err, result) => {
                 if (err) {
@@ -432,12 +437,6 @@ module.exports = {
                   }
                 }
               });
-            } else {
-              res.status(201).json({
-                status: 0,
-                message: "Create Profile Before Updating",
-              });
-            }
           }
         });
       } else {
