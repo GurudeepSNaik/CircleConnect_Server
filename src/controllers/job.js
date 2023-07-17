@@ -279,40 +279,56 @@ module.exports = {
                                           user.fullName AS userFullName,
                                           user.profilePic AS userProfilePic,
                                           owner.fullName AS ownerFullName,
-                                          owner.profilePic AS ownerProfilePic
+                                          owner.profilePic AS ownerProfilePic,
+                                          user2.name AS username,
+                                          owner2.name AS ownername
                                            FROM application a
                                            LEFT JOIN profile user ON a.applicationuserId = user.userId
                                            LEFT JOIN profile owner ON a.applicationownerId = owner.userId
+                                           LEFT JOIN user user2 ON a.applicationuserId = user2.userId
+                                           LEFT JOIN user owner2 ON a.applicationownerId = owner2.userId
                                            WHERE a.applicationjobId = ${id} AND a.accepted = 1`;
 
         const pendingApplicantsQuery = `SELECT a.* ,
                                           user.fullName AS userFullName,
                                           user.profilePic AS userProfilePic,
                                           owner.fullName AS ownerFullName,
-                                          owner.profilePic AS ownerProfilePic
+                                          owner.profilePic AS ownerProfilePic,
+                                          user2.name AS username,
+                                          owner2.name AS ownername
                                           FROM application a
                                           LEFT JOIN profile user ON a.applicationuserId = user.userId
                                           LEFT JOIN profile owner ON a.applicationownerId = owner.userId
+                                          LEFT JOIN user user2 ON a.applicationuserId = user2.userId
+                                          LEFT JOIN user owner2 ON a.applicationownerId = owner2.userId
                                           WHERE a.applicationjobId = ${id} AND a.accepted = 0 AND a.rejected = 0`;
 
         const allApplicantsQuery = `SELECT a.*,
                                       user.fullName AS userFullName,
                                       user.profilePic AS userProfilePic,
                                       owner.fullName AS ownerFullName,
-                                      owner.profilePic AS ownerProfilePic
+                                      owner.profilePic AS ownerProfilePic,
+                                      user2.name AS username,
+                                      owner2.name AS ownername
                                       FROM application a
                                       LEFT JOIN profile user ON a.applicationuserId = user.userId
                                       LEFT JOIN profile owner ON a.applicationownerId = owner.userId
+                                      LEFT JOIN user user2 ON a.applicationuserId = user2.userId
+                                      LEFT JOIN user owner2 ON a.applicationownerId = owner2.userId
                                       WHERE a.applicationjobId = ${id}`;
 
         const rejectedApplicantsQuery = `SELECT a.*,
                                           user.fullName AS userFullName,
                                           user.profilePic AS userProfilePic,
                                           owner.fullName AS ownerFullName,
-                                          owner.profilePic AS ownerProfilePic
+                                          owner.profilePic AS ownerProfilePic,
+                                          user2.name AS username,
+                                          owner2.name AS ownername
                                           FROM application a
                                           LEFT JOIN profile user ON a.applicationuserId = user.userId
                                           LEFT JOIN profile owner ON a.applicationownerId = owner.userId
+                                          LEFT JOIN user user2 ON a.applicationuserId = user2.userId
+                                          LEFT JOIN user owner2 ON a.applicationownerId = owner2.userId
                                           WHERE a.applicationjobId = ${id} AND a.rejected = 1`;
 
         const reviewQuery = `SELECT a.job_review
