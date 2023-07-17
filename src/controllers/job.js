@@ -389,9 +389,13 @@ module.exports = {
     try {
       const { userId } = req.query;
       if (userId) {
-        const query = `SELECT *
+        const query = `SELECT job.*, 
+        industry.industry
         FROM job
-        WHERE jobId IN (SELECT applicationjobId FROM application WHERE accepted = 1) AND userId = ${userId};`;
+        JOIN industry ON job.category = industry.industryId
+        WHERE job.jobId IN (SELECT applicationjobId FROM application WHERE accepted = 1)
+        AND job.userId = ${userId};
+        `;
         connection.query(query, (err, result) => {
           if (err) {
             console.log(err);
@@ -425,8 +429,10 @@ module.exports = {
     try {
       const { userId } = req.query;
       if (userId) {
-        const query = `SELECT *
+        const query = `SELECT job.*, 
+        industry.industry
         FROM job
+        JOIN industry ON job.category = industry.industryId
         WHERE jobId NOT IN (SELECT applicationjobId FROM application WHERE Accepted = 1) AND userId = ${userId};`;
         connection.query(query, (err, result) => {
           if (err) {
@@ -461,8 +467,10 @@ module.exports = {
     try {
       const { userId } = req.query;
       if (userId) {
-        const query = `SELECT *
+        const query = `SELECT job.*, 
+        industry.industry
         FROM job
+        JOIN industry ON job.category = industry.industryId
         WHERE jobId IN (
             SELECT applicationjobId
             FROM application
