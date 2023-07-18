@@ -395,7 +395,8 @@ module.exports = {
         FROM job
         JOIN industry ON job.category = industry.industryId
         WHERE job.jobId IN (SELECT applicationjobId FROM application WHERE accepted = 1)
-        AND job.userId = ${userId};
+        AND job.userId = ${userId}
+        AND job.job_complete != 1;
         `;
         connection.query(query, (err, result) => {
           if (err) {
@@ -477,6 +478,7 @@ module.exports = {
             FROM application
             WHERE applicationuserId = ${userId}
                 AND accepted = 1
+                AND job_complete != 1
         )`;
         connection.query(query, (err, result) => {
           if (err) {
