@@ -570,16 +570,16 @@ module.exports = {
   },
   completeAJob: async function (req, res) {
     try {
-      const { applicationid } = req.body;
-      if (!applicationid) {
+      const { userId, jobId } = req.body;
+      if (!userId || !jobId) {
         return res.status(201).json({
           status: 0,
-          message: "application id is Required, Note:user Must be a worker",
+          message: "userId and jobId is Required, Note:user Must be a worker",
         });
       }
-      const updateQuery = `UPDATE application SET job_complete = ${1} WHERE id = ${applicationid}`;
-      const jobIdQuery = `SELECT applicationjobId FROM application WHERE id = ${applicationid};`;
-      const [{ applicationjobId: jobId }] = await executeQuery(jobIdQuery);
+      const updateQuery = `UPDATE application SET job_complete = ${1} 
+      WHERE applicationjobId = ${jobId} AND applicationuserId=${userId}`;
+
       const updateJobQuery = `UPDATE job
       SET job_complete = 1
       WHERE jobId = ${jobId}
@@ -605,11 +605,11 @@ module.exports = {
   },
   rating: function (req, res) {
     try {
-      const { applicationid, rating, review, type } = req.body;
-      if (!applicationid) {
+      const { jobId, userId, rating, review, type } = req.body;
+      if (!jobId || !userId) {
         return res.status(201).json({
           status: 0,
-          message: "application id is Required, Note:user Must be a worker",
+          message: "jobId and userId is Required, Note:user Must be a worker",
         });
       }
       if (!rating || !review) {
@@ -628,7 +628,7 @@ module.exports = {
       if (type === "JOB_RATING") {
         const updateQuery = `UPDATE application
         SET job_rating = ${rating}, job_review = "${review}"
-        WHERE id = ${applicationid}`;
+        WHERE applicationjobId = ${jobId} AND applicationuserId=${userId}`;
 
         connection.query(updateQuery, (updateErr, updateResult) => {
           if (updateErr) {
@@ -649,7 +649,7 @@ module.exports = {
       if (type === "APPLICANT_RATING") {
         const updateQuery = `UPDATE application
         SET applicant_rating = ${rating}, applicant_review = "${review}"
-        WHERE id = ${applicationid}`;
+        WHERE applicationjobId = ${jobId} AND applicationuserId=${userId}`;
 
         connection.query(updateQuery, (updateErr, updateResult) => {
           if (updateErr) {
