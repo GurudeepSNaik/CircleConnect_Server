@@ -1,4 +1,5 @@
 const connection = require("../../config/connection.js");
+const executeQuery = require("../utils/executeQuery.js");
 
 module.exports = {
   search: function (req, res) {
@@ -506,35 +507,94 @@ module.exports = {
       });
     }
   },
-  completedJobsForWorker: function (req, res) {
+  completedJobsForWorker: async function (req, res) {
     try {
       const { userId } = req.query;
-      if (userId) {
-        res.status(200).json({
-          status: 1,
-          message: "Completed Jobs Retrieved Successfully",
-          list: [],
+      if (!userId) {
+        return res.status(201).json({
+          status: 0,
+          message: "userId Of a Worker is Required",
         });
-      } else {
       }
-      // const query = `SELECT *
-      // FROM job
-      // WHERE jobId IN (SELECT applicationjobId FROM application WHERE accepted = 1) AND userId = ${userId};`;
-      // connection.query(query, (err, result) => {
-      //   if (err) {
-      //     console.log(err);
-      //     res.status(201).json({
-      //       status: 0,
-      //       message: err.message,
-      //     });
-      //   } else {
-      //     res.status(200).json({
-      //       status: 1,
-      //       message: "Active Jobs Retrieved Successfully",
-      //       list: result,
-      //     });
-      //   }
-      // });
+      const query = `SELECT job.*, 
+      industry.industry
+      FROM job
+      JOIN industry ON job.category = industry.industryId
+      WHERE jobId IN (
+          SELECT applicationjobId
+          FROM application
+          WHERE applicationuserId = ${userId}
+              AND job_complete = 1
+      )`;
+      const result = await executeQuery(query);
+      return res.status(200).json({
+        status: 1,
+        message: "Completed Jobs Retrieved Successfully",
+        list: result,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(201).json({
+        status: 0,
+        message: error.message,
+      });
+    }
+  },
+  completedJobsForJobPoster: async function (req, res) {
+    try {
+      const { userId } = req.query;
+      if (!userId) {
+        return res.status(201).json({
+          status: 0,
+          message: "userId Of a Job Poster is Required",
+        });
+      }
+      const query = `SELECT job.*, 
+      industry.industry
+      FROM job
+      JOIN industry ON job.category = industry.industryId
+      WHERE userId  = ${userId} AND job_complete = 1`;
+      const result = await executeQuery(query);
+      return res.status(200).json({
+        status: 1,
+        message: "Completed Jobs Retrieved Successfully",
+        list: result,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(201).json({
+        status: 0,
+        message: error.message,
+      });
+    }
+  },
+  completeAJob: async function (req, res) {
+    try {
+      const { applicationid } = req.body;
+      if (!applicationid) {
+        return res.status(201).json({
+          status: 0,
+          message: "application id is Required, Note:user Must be a worker",
+        });
+      }
+      const updateQuery = `UPDATE application SET job_complete = ${1} WHERE id = ${applicationid}`;
+      const jobIdQuery = `SELECT applicationjobId FROM application WHERE id = ${applicationid};`;
+      const [{ applicationjobId: jobId }] = await executeQuery(jobIdQuery);
+      const updateJobQuery = `UPDATE job
+      SET job_complete = 1
+      WHERE jobId = ${jobId}
+        AND (
+          SELECT COUNT(*)
+          FROM application
+          WHERE applicationjobId = job.jobId
+            AND job_complete = 1
+        ) >= noa;`;
+      await executeQuery(updateQuery);
+      await executeQuery(updateJobQuery);
+      return res.status(200).json({
+        status: 1,
+        message: "Job Completed",
+      });
     } catch (error) {
       console.log(error);
       res.status(201).json({

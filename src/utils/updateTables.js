@@ -74,5 +74,26 @@ const updatetablesinDatabase=()=>{
         });
       }
     });
+
+    const check_complete_In_Application =`SHOW COLUMNS FROM application LIKE 'job_complete';`
+    connection.query(check_complete_In_Application, (reviewErr, reviewResult) => {
+      if (reviewErr)  console.log(reviewErr);    
+      if (reviewResult.length === 0) {
+        const addReviewColumnQuery = `ALTER TABLE application ADD job_complete BOOLEAN DEFAULT false;`;
+        connection.query(addReviewColumnQuery, (addReviewErr, addReviewResult) => {
+          if (addReviewErr)  console.log(addReviewErr);
+        });
+      }
+    });
+    const check_complete_In_Job =`SHOW COLUMNS FROM job LIKE 'job_complete';`
+    connection.query(check_complete_In_Job, (reviewErr, reviewResult) => {
+      if (reviewErr)  console.log(reviewErr);    
+      if (reviewResult.length === 0) {
+        const addReviewColumnQuery = `ALTER TABLE job ADD job_complete BOOLEAN DEFAULT false;`;
+        connection.query(addReviewColumnQuery, (addReviewErr, addReviewResult) => {
+          if (addReviewErr)  console.log(addReviewErr);
+        });
+      }
+    });
 }
 module.exports=updatetablesinDatabase;
