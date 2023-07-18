@@ -73,6 +73,14 @@ module.exports = {
 CREATE_EMPTY_PROFILE_WITH_USERID:(userId)=>(`INSERT INTO profile (userId, createdAt, updatedAt, status)
 VALUES (${userId}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1);
 `),
+CREATE_EMPTY_QUALIFICATION_WITH_USERID:(userId)=>(`INSERT IGNORE INTO qualification (userId, createdAt, updatedAt, status)
+SELECT ${userId}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1
+FROM dual
+WHERE NOT EXISTS (SELECT 1 FROM qualification WHERE userId = ${userId});`),
+CREATE_EMPTY_EXPERIENCE_WITH_USERID:(userId)=>(`INSERT IGNORE INTO experience (userId, createdAt, updatedAt, status)
+SELECT ${userId}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1
+FROM dual
+WHERE NOT EXISTS (SELECT 1 FROM experience WHERE userId = ${userId});`),
 GET_RECENT_APPLICANT_WITH_OWNER_ID:(userId,length, skip, sortBy,sortOrder)=>( `
 SELECT 
 application.id AS applicationId,

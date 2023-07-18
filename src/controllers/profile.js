@@ -285,7 +285,7 @@ module.exports = {
       });
     }
   },
-  edit:async function (req, res) {
+  edit: async function (req, res) {
     let {
       dateofbirth = null,
       fullname = null,
@@ -313,22 +313,22 @@ module.exports = {
           } else {
             const profileExists = profileResult[0].count > 0;
             if (!profileExists) {
-                 const query=queries.CREATE_EMPTY_PROFILE_WITH_USERID(userId);
-                 await executeQuery(query)
+              const query = queries.CREATE_EMPTY_PROFILE_WITH_USERID(userId);
+              await executeQuery(query);
             }
-              const query = `SELECT type FROM user WHERE userId=${userId}`;
-              connection.query(query, (err, result) => {
-                if (err) {
-                  console.log(err.message);
-                  res.status(201).json({
-                    status: 0,
-                    message: err.message,
-                  });
-                } else {
-                  const type = (result[0] && result[0].type) || "";
+            const query = `SELECT type FROM user WHERE userId=${userId}`;
+            connection.query(query, async (err, result) => {
+              if (err) {
+                console.log(err.message);
+                res.status(201).json({
+                  status: 0,
+                  message: err.message,
+                });
+              } else {
+                const type = (result[0] && result[0].type) || "";
 
-                  if (type.toUpperCase() === "JOB POSTER") {
-                    const query = `
+                if (type.toUpperCase() === "JOB POSTER") {
+                  const query = `
                     UPDATE profile
                     SET
                     ${dateofbirth ? `dob = '${dateofbirth}',` : ""}
@@ -342,22 +342,75 @@ module.exports = {
                     ${profile ? `profilePic = '${profile}',` : ""}
                       updatedAt = NOW()
                       WHERE userId=${userId};`;
-                    connection.query(query, (err, result) => {
-                      if (err) {
-                        console.log(err.message);
-                        res.status(201).json({
-                          status: 0,
-                          message: err.message,
-                        });
-                      } else {
-                        res.status(200).json({
-                          status: 1,
-                          message: "JOB POSTER Profile Updated Successfully",
-                        });
-                      }
+                  connection.query(query, (err, result) => {
+                    if (err) {
+                      console.log(err.message);
+                      res.status(201).json({
+                        status: 0,
+                        message: err.message,
+                      });
+                    } else {
+                      res.status(200).json({
+                        status: 1,
+                        message: "JOB POSTER Profile Updated Successfully",
+                      });
+                    }
+                  });
+                } else if (type.toUpperCase() === "WORKER") {
+                  const qualificationQuery =
+                    queries.CREATE_EMPTY_QUALIFICATION_WITH_USERID(userId);
+                  // const experienceQuery =
+                  //   queries.CREATE_EMPTY_EXPERIENCE_WITH_USERID(userId);
+                  await executeQuery(qualificationQuery);
+                  // await executeQuery(experienceQuery);
+                  if(experience && experience.length>0){
+                    const industries = experience.map((each) => each.industry);
+                    const insertIndustry = `INSERT INTO industry (industry, status)
+                          SELECT * FROM (${industries
+                            .map((each, i) => {
+                              if (i === 0) {
+                                return `SELECT '${each}' AS industry, 1 AS status`;
+                              } else {
+                                return ` SELECT '${each}', 1`;
+                              }
+                            })
+                            .join(" UNION ALL")}
+                          ) AS tmp
+                          WHERE NOT EXISTS (
+                              SELECT industry FROM industry WHERE industry = tmp.industry
+                          );
+          
+                          SELECT industryId, industry FROM industry WHERE industry IN (${industries
+                            .map((each) => `'${each}'`)
+                            .join(", ")});
+                      `;
+                    const [insertIndustryResult, industry] = await executeQuery(
+                      insertIndustry
+                    );
+                    experience = experience.map((exp) => {
+                      id = industry.find(
+                        (each) => each.industry === exp.industry
+                      );
+                      return { ...exp, ...id };
                     });
-                  } else if (type.toUpperCase() === "WORKER") {
-                    const query = `
+                    let insertExperienceQuery = "";
+                    insertExperienceQuery += experience
+                      .map((each) => {
+                        if (!each.experienceId) {
+                          return `INSERT INTO experience (industry, noy, userId, createdAt, updatedAt, status) 
+                  SELECT '${each.industryId}', '${each.years}', '${userId}', NOW(), NOW(), 1 
+                  FROM dual 
+                  WHERE NOT EXISTS (SELECT 1 FROM experience WHERE userId = '${userId}' AND industry = '${each.industryId}');`;
+                        } else {
+                          return "";
+                        }
+                      })
+                      .join(" ");
+  
+                    await executeQuery(insertExperienceQuery);
+                  }
+
+                  const query = `
                     UPDATE profile
                     SET
                     ${dateofbirth ? `dob = '${dateofbirth}',` : ""}
@@ -415,28 +468,28 @@ module.exports = {
                             .join(" ")
                         : ""
                     }`;
-                    connection.query(query, (err, results) => {
-                      if (err) {
-                        console.log(err.message);
-                        res.status(201).json({
-                          status: 0,
-                          message: err.message,
-                        });
-                      } else {
-                        res.status(200).json({
-                          status: 1,
-                          message: "Worker Profile Updated Successfully",
-                        });
-                      }
-                    });
-                  } else {
-                    res.status(201).json({
-                      status: 0,
-                      message: "User is Neither Job Poster or a Worker",
-                    });
-                  }
+                  connection.query(query, (err, results) => {
+                    if (err) {
+                      console.log(err.message);
+                      res.status(201).json({
+                        status: 0,
+                        message: err.message,
+                      });
+                    } else {
+                      res.status(200).json({
+                        status: 1,
+                        message: "Worker Profile Updated Successfully",
+                      });
+                    }
+                  });
+                } else {
+                  res.status(201).json({
+                    status: 0,
+                    message: "User is Neither Job Poster or a Worker",
+                  });
                 }
-              });
+              }
+            });
           }
         });
       } else {
