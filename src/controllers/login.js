@@ -37,7 +37,7 @@ module.exports = {
 
                       const token = jwt.sign(payload, process.env.TOKEN_KEY, {
                         algorithm: "HS512",
-                        expiresIn: '10d',
+                        expiresIn: '30d',
                       });
 
                       res.status(200).json({
@@ -197,7 +197,7 @@ module.exports = {
   
                         const token = jwt.sign(payload, process.env.TOKEN_KEY, {
                           algorithm: "HS512",
-                          expiresIn: '10d',
+                          expiresIn: '30d',
                         });
                         res.status(200).json({
                           status: 1,

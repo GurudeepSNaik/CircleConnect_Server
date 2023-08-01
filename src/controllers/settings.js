@@ -108,20 +108,4 @@ module.exports = {
       });
     }
   },
-  // get2: async function (req, res) {
-  //   try {
-  //     const query = queries.COUNT_WITH_KEY_VALUE_TABLE("industryId",2,"industry");
-  //     const result = await executeQuery(query);
-  //     res.status(200).json({
-  //       status: 1,
-  //       message: result,
-  //     });
-  //   } catch (error) {
-  //     console.error(error);
-  //     res.status(201).json({
-  //       status: 0,
-  //       message: error.message,
-  //     });
-  //   }
-  // },
 };
