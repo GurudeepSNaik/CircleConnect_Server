@@ -95,5 +95,27 @@ const updatetablesinDatabase=()=>{
         });
       }
     });
+
+    const check_logged_In_user =`SHOW COLUMNS FROM user LIKE 'logged';`
+    connection.query(check_logged_In_user, (reviewErr, reviewResult) => {
+      if (reviewErr)  console.log(reviewErr);    
+      if (reviewResult.length === 0) {
+        const addReviewColumnQuery = `ALTER TABLE user ADD logged BOOLEAN DEFAULT false;`;
+        connection.query(addReviewColumnQuery, (addReviewErr, addReviewResult) => {
+          if (addReviewErr)  console.log(addReviewErr);
+        });
+      }
+    });
+
+    const check_fmctoken_In_user =`SHOW COLUMNS FROM user LIKE 'fmctoken';`
+    connection.query(check_fmctoken_In_user, (reviewErr, reviewResult) => {
+      if (reviewErr)  console.log(reviewErr);    
+      if (reviewResult.length === 0) {
+        const addReviewColumnQuery = `ALTER TABLE user ADD fmctoken VARCHAR(1000);`;
+        connection.query(addReviewColumnQuery, (addReviewErr, addReviewResult) => {
+          if (addReviewErr)  console.log(addReviewErr);
+        });
+      }
+    });
 }
 module.exports=updatetablesinDatabase;

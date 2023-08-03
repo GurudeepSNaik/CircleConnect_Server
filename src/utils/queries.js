@@ -122,5 +122,6 @@ FROM application
 WHERE application.applicationownerId = ${userId}
 AND application.rejected = 0
 AND application.accepted = 0;
-`)
+`),
+LOG_OUT_WHITH_ID:(id)=>(`UPDATE user SET logged = false WHERE userId = '${id}';`)
 };

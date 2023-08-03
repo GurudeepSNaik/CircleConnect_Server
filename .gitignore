@@ -3,3 +3,4 @@ uploads/*
 .env
 !uploads/logo.png 
 sql/
+circlesconnect-47cf6-firebase-adminsdk-5robu-2478a3767c.json
