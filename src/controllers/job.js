@@ -116,7 +116,8 @@ module.exports = {
         jobType &&
         popular
       ) {
-        const query = `Select * from user where userId =${userId}`;
+        const query = `Select * from user where userId =${userId};
+                       Select * from profile where userId = ${userId};`;
         connection.query(query, (err, result) => {
           if (err) {
             console.log(err.message);
@@ -125,11 +126,12 @@ module.exports = {
               message: err.message,
             });
           } else {
-            if (result[0] && result[0].type) {
-              const type = result[0].type.toUpperCase();
+            if (result[0][0] && result[0][0].type) {
+              const type = result[0][0].type.toUpperCase();
+              const image = result[1][0].profilePic;
               if (type === "ADMIN" || type === "JOB POSTER") {
-                const query = `INSERT INTO job (category, companyName, location, dressCode, dateAndTime, noa, fixedCost, variableCost, tnc, requiredSkill, minExp, userId, jobType, popular, description,createdAt,updatedAt,status)
-                               VALUES (${category},'${companyName}','${location}','${dressCode}','${dateAndTime}',${noa},'${fixedCost}','${variableCost}','${tnc}','${requiredSkill}','${minExp}',${userId},'${jobType}',${popular},'${description}',NOW(),NOW(),1);`;
+                const query = `INSERT INTO job (category, companyName, location, dressCode, dateAndTime, noa, fixedCost, variableCost, tnc, requiredSkill, minExp, userId, jobType, popular, description,createdAt,updatedAt,status, companyImage)
+                               VALUES (${category},'${companyName}','${location}','${dressCode}','${dateAndTime}',${noa},'${fixedCost}','${variableCost}','${tnc}','${requiredSkill}','${minExp}',${userId},'${jobType}',${popular},'${description}',NOW(),NOW(),1,'${image}');`;
                 connection.query(query, (err, results) => {
                   if (err) {
                     console.log(err.message);

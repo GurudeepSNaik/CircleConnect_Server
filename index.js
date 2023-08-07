@@ -46,7 +46,7 @@ const notifyUser=async ()=>{
 app.use("/auth", route.login);
 app.use("/user", user, route.user);
 app.use("/job", user, route.job);
-app.use("/industry", user, route.industry);
+app.use("/industry", user,upload.any(), route.industry);
 app.use("/profile", upload.any(), route.profile);
 app.use("/application", user, upload.any(), route.application);
 app.use("/settings", user, route.settings);

@@ -117,5 +117,26 @@ const updatetablesinDatabase=()=>{
         });
       }
     });
+
+    const check_image_In_industry =`SHOW COLUMNS FROM industry LIKE 'image';`
+    connection.query(check_image_In_industry, (reviewErr, reviewResult) => {
+      if (reviewErr)  console.log(reviewErr);    
+      if (reviewResult.length === 0) {
+        const addReviewColumnQuery = `ALTER TABLE industry ADD image VARCHAR(1000);`;
+        connection.query(addReviewColumnQuery, (addReviewErr, addReviewResult) => {
+          if (addReviewErr)  console.log(addReviewErr);
+        });
+      }
+    });
+    const check_image_In_job =`SHOW COLUMNS FROM job LIKE 'companyImage';`
+    connection.query(check_image_In_job, (reviewErr, reviewResult) => {
+      if (reviewErr)  console.log(reviewErr);    
+      if (reviewResult.length === 0) {
+        const addReviewColumnQuery = `ALTER TABLE job ADD companyImage VARCHAR(1000);`;
+        connection.query(addReviewColumnQuery, (addReviewErr, addReviewResult) => {
+          if (addReviewErr)  console.log(addReviewErr);
+        });
+      }
+    });
 }
 module.exports=updatetablesinDatabase;

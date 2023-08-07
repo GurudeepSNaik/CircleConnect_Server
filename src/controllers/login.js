@@ -10,8 +10,13 @@ module.exports = {
   login: function (req, res) {
     let { email, password, fmctoken } = req.body;
     try {
-      if (email && password && fmctoken) {
+      if (email && password) {
         email = email.toLowerCase();
+        if (email !== "admin@circleconnect.com" && !fmctoken)
+          return res.status(201).json({
+            status: 0,
+            message: "Please enter all the fields.",
+          });
         connection.query(
           `Select * from user where email = '${email}'`,
           async function (err, result) {
@@ -100,8 +105,17 @@ module.exports = {
     }
   },
   register: async function (req, res) {
-    let { type, username, password, mobile, email, country, province, city,fmctoken } =
-      req.body;
+    let {
+      type,
+      username,
+      password,
+      mobile,
+      email,
+      country,
+      province,
+      city,
+      fmctoken,
+    } = req.body;
     try {
       if (
         type &&
@@ -111,7 +125,7 @@ module.exports = {
         email &&
         country &&
         province &&
-        city && 
+        city &&
         fmctoken
       ) {
         email = email.toLowerCase();
@@ -285,7 +299,6 @@ module.exports = {
             }
           }
         );
-
       } else {
         res.status(201).json({
           status: 0,
@@ -482,7 +495,7 @@ module.exports = {
         const province = State.getStatesOfCountry(country.isoCode).map(
           (state) => ({ name: state.name, code: state.isoCode })
         );
-        
+
         res.status(200).json({
           status: 1,
           message: "States Successfully Retrived",
