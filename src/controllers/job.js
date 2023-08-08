@@ -100,6 +100,7 @@ module.exports = {
       description = "",
     } = req.body;
     try {
+      console.log(req.body,"line-103")
       if (
         category &&
         companyName &&
@@ -126,6 +127,7 @@ module.exports = {
               message: err.message,
             });
           } else {
+            console.log(result,"line-130")
             if (result[0][0] && result[0][0].type) {
               const type = result[0][0].type.toUpperCase();
               const image = result[1][0].profilePic;
