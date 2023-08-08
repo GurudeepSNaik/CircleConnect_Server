@@ -298,6 +298,7 @@ module.exports = {
       education = null,
       experience = null,
       certificate = null,
+      username=null
     } = req.body;
     try {
       if (userId) {
@@ -314,6 +315,11 @@ module.exports = {
             const profileExists = profileResult[0].count > 0;
             if (!profileExists) {
               const query = queries.CREATE_EMPTY_PROFILE_WITH_USERID(userId);
+              await executeQuery(query);
+            }
+
+            if (username && userId){
+              const query=`UPDATE user set name='${username}' where userId=${userId}`
               await executeQuery(query);
             }
             const query = `SELECT type FROM user WHERE userId=${userId}`;
