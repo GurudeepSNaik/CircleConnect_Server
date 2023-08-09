@@ -39,15 +39,17 @@ module.exports = {
                     list: result,
                   });
                 } else {
-                  res.status(201).json({
-                    status: 0,
-                    message: "No Jobs Found",
+                  res.status(200).json({
+                    status: 1,
+                    message: "Jobs Retrived Successfully",
+                    list: [],
                   });
                 }
               } else {
-                res.status(201).json({
-                  status: 0,
-                  message: "No Jobs Found",
+                res.status(200).json({
+                  status: 1,
+                  message: "Jobs Retrived Successfully",
+                  list: [],
                 });
               }
             }

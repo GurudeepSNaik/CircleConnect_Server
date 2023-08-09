@@ -252,7 +252,8 @@ module.exports = {
                        SELECT * FROM qualification WHERE userId=${userId};
                        SELECT * FROM experience e
                       JOIN industry i ON e.industry = i.industryId
-                      WHERE e.userId=${userId};`;
+                      WHERE e.userId=${userId};
+                      SELECT name AS username FROM user where userId=${userId}`;
         connection.query(query, (err, results) => {
           if (err) {
             console.log(err.message);
@@ -262,6 +263,7 @@ module.exports = {
             });
           } else {
             const profile = {
+              ...results[3][0],
               ...results[0][0],
               qualification: results[1],
               experience: results[2],
