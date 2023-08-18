@@ -42,6 +42,7 @@ app.use("/profile", upload.any(), route.profile);
 app.use("/application", user, upload.any(), route.application);
 app.use("/settings", user, route.settings);
 app.use("/logout", user, route.logout);
+app.use("/notifications", user, route.notifications);
 
 updatetablesinDatabase();
 

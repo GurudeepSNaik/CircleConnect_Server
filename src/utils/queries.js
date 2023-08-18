@@ -123,5 +123,8 @@ WHERE application.applicationownerId = ${userId}
 AND application.rejected = 0
 AND application.accepted = 0;
 `),
-LOG_OUT_WHITH_ID:(id)=>(`UPDATE user SET logged = false WHERE userId = '${id}';`)
+LOG_OUT_WHITH_ID:(id)=>(`UPDATE user SET logged = false WHERE userId = '${id}';`),
+ADD_NOTIFICATIONS:(title,body,token,userId)=>(`INSERT INTO notifications (title, body, token, userId) VALUES ('${title}', '${body}', '${token}', ${userId});`),
+GET_NOTIFICATIONS:(userId)=>(`SELECT id, title, body FROM notifications WHERE userId = ${userId};`),
+DELETE_NOTIFICATIONS:(id)=>(`DELETE FROM notifications WHERE id = ${id};`)
 };

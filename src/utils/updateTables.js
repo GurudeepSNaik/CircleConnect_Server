@@ -138,5 +138,23 @@ const updatetablesinDatabase=()=>{
         });
       }
     });
+
+    const check_notifications_table = `SHOW TABLES LIKE 'notifications';`;
+    connection.query(check_notifications_table, (reviewErr, reviewResult) => {
+      if (reviewErr)  console.log(reviewErr);    
+      if (reviewResult.length === 0) {
+        const addReviewColumnQuery = `CREATE TABLE notifications (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          title VARCHAR(1000),
+          body VARCHAR(1000),
+          token VARCHAR(1000),
+          userId INT,
+          FOREIGN KEY (userId) REFERENCES user(userId)
+      );`;
+        connection.query(addReviewColumnQuery, (addReviewErr, addReviewResult) => {
+          if (addReviewErr)  console.log(addReviewErr);
+        });
+      }
+    });
 }
 module.exports=updatetablesinDatabase;
