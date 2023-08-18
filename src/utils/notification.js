@@ -13,12 +13,15 @@ const notifyWorkerForJob = async (jobId) => {
     const query2 = `SELECT fmctoken, name FROM user WHERE type = "worker";`;
 
     const fmctokens = await executeQuery(query2);
-    const users =fmctokens?.map((each) => ({ token: each.fmctoken, name: each.name })) || [];
+    const users =
+      fmctokens?.map((each) => ({ token: each.fmctoken, name: each.name })) ||
+      [];
     const notificationPromises = users.map((element) => {
       return notify(
         element.token,
         `Hello ${element.name}`,
-        "new job has been posted which matches your experience"
+        // "new job has been posted which matches your experience"
+        "new job has been posted"
       );
     });
 
@@ -28,8 +31,58 @@ const notifyWorkerForJob = async (jobId) => {
     console.log("Error:", error);
   }
 };
-// notifyUser();
+const notifyCompanyForApplication = async (jobId, userId) => {
+  try {
+    const query = `select name from user where userId=${userId}`;
+    const worker = await executeQuery(query);
+    const workername = worker[0].name;
+    const query2 = `SELECT u.name, u.fmctoken
+                  FROM user u
+                  JOIN job j ON u.userId = j.userId
+                  WHERE j.jobId = ${jobId};`;
+
+    const fmctokens = await executeQuery(query2);
+    const user = {
+      token: fmctokens[0].fmctoken,
+      name: fmctokens[0].name,
+    };
+    const result = await notify(
+      user.token,
+      `Hello ${user.name}`,
+      `${workername} has applied for a job`
+    );
+    console.log(result);
+  } catch (error) {
+    console.log("Error:", error);
+  }
+};
+const notifyApplicantForJobAcceptence = async (applicationId) => {
+  try {
+    const query = `select applicationuserId,applicationjobId from application where id=${applicationId}`;
+    const application = await executeQuery(query);
+    const userId = application[0].applicationuserId;
+    const jobId = application[0].applicationjobId;
+    const query2 = `select companyName from job where jobId=${jobId}`;
+    const companyNameResult = await executeQuery(query2);
+    const query3 = `select fmctoken,name from user where userId=${userId};`;
+    const usernameandtoken = await executeQuery(query3);
+    const username = usernameandtoken[0].name;
+    const token = usernameandtoken[0].fmctoken;
+    const companyName=companyNameResult[0].companyName
+    console.log(username,token,companyName);
+    const result = await notify(
+      token,
+      `Hello ${username}`,
+      `congratulations your application was accepted in ${companyName}.`
+    );
+    console.log(result);
+  } catch (error) {
+    console.log("Error:", error);
+  }
+};
 
 module.exports = {
   notifyWorkerForJob,
+  notifyCompanyForApplication,
+  notifyApplicantForJobAcceptence,
 };

@@ -1,5 +1,6 @@
 const connection = require("../../config/connection.js");
 const executeQuery = require("../utils/executeQuery.js");
+const { notifyCompanyForApplication, notifyApplicantForJobAcceptence } = require("../utils/notification.js");
 const queries = require("../utils/queries.js");
 
 module.exports = {
@@ -17,7 +18,7 @@ module.exports = {
             });
           } else {
             const query = `INSERT INTO application (coverletter, applicationjobId, applicationuserId, applicationownerId) VALUES ('${coverletter}', ${jobId}, ${userId}, ${result[0].userId});`;
-            connection.query(query, (err, result) => {
+            connection.query(query, async (err, result) => {
               if (err) {
                 console.log(err);
                 res.status(201).json({
@@ -25,6 +26,7 @@ module.exports = {
                   message: err.message,
                 });
               } else {
+                await notifyCompanyForApplication(jobId, userId);
                 res.status(200).json({
                   status: 1,
                   message: result,
@@ -181,7 +183,7 @@ module.exports = {
                   const query = `UPDATE job
                   SET status = 0
                   WHERE noa <= ${numberOfApplicants};`;
-                  connection.query(query, (err, result) => {
+                  connection.query(query, async(err, result) => {
                     if (err) {
                       console.log(err);
                       res.status(201).json({
@@ -189,6 +191,7 @@ module.exports = {
                         message: err.message,
                       });
                     } else {
+                     if(accepted) await notifyApplicantForJobAcceptence(applicationId);
                       res.status(200).json({
                         status: 1,
                         message: "Success",
@@ -352,7 +355,7 @@ module.exports = {
         const countQuery = queries.COUNT_RECENT_APPLICANT_WITH_OWNER_ID(userId);
         const recentapplicants = await executeQuery(query);
         const countrecentapplicants = await executeQuery(countQuery);
-        const totalcount=countrecentapplicants[0].totalCount
+        const totalcount = countrecentapplicants[0].totalCount;
         res.status(200).json({
           status: 1,
           message: "Applicants retrieved successfully",
