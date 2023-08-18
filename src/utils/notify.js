@@ -12,9 +12,9 @@ const notify = async (fcmToken, title, body) => {
     };
 
     const response= await getMessaging().send(message);
-    return response;
+    return { status: "resolved", message: response };
   } catch (error) {
-    throw error;
+    return { status: "rejected", message: error.message };
   }
 };
 

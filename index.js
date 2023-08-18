@@ -33,20 +33,11 @@ initializeApp({
   credential: applicationDefault(),
   projectId: "circlesconnect-47cf6",
 });
-const notifyUser=async ()=>{
-  try {
-    const response=await notify("Dontno","Hello There","Nothing")
-    console.log(response);
-  } catch (error) {
-    console.log("Error:",error);
-  }
-}
-// notifyUser();
 
 app.use("/auth", route.login);
 app.use("/user", user, route.user);
 app.use("/job", user, route.job);
-app.use("/industry", user,upload.any(), route.industry);
+app.use("/industry", user, upload.any(), route.industry);
 app.use("/profile", upload.any(), route.profile);
 app.use("/application", user, upload.any(), route.application);
 app.use("/settings", user, route.settings);

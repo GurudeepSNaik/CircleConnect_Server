@@ -1,5 +1,6 @@
 const connection = require("../../config/connection.js");
 const executeQuery = require("../utils/executeQuery.js");
+const { notifyWorkerForJob } = require("../utils/notification.js");
 
 module.exports = {
   search: function (req, res) {
@@ -102,7 +103,6 @@ module.exports = {
       description = "",
     } = req.body;
     try {
-      console.log(req.body,"line-103")
       if (
         category &&
         companyName &&
@@ -129,14 +129,13 @@ module.exports = {
               message: err.message,
             });
           } else {
-            console.log(result,"line-130")
             if (result[0][0] && result[0][0].type) {
               const type = result[0][0].type.toUpperCase();
               const image = result[1][0].profilePic;
               if (type === "ADMIN" || type === "JOB POSTER") {
                 const query = `INSERT INTO job (category, companyName, location, dressCode, dateAndTime, noa, fixedCost, variableCost, tnc, requiredSkill, minExp, userId, jobType, popular, description,createdAt,updatedAt,status, companyImage)
                                VALUES (${category},'${companyName}','${location}','${dressCode}','${dateAndTime}',${noa},'${fixedCost}','${variableCost}','${tnc}','${requiredSkill}','${minExp}',${userId},'${jobType}',${popular},'${description}',NOW(),NOW(),1,'${image}');`;
-                connection.query(query, (err, results) => {
+                connection.query(query, async (err, results) => {
                   if (err) {
                     console.log(err.message);
                     res.status(201).json({
@@ -144,6 +143,8 @@ module.exports = {
                       message: err.message,
                     });
                   } else {
+                    const jobId=results.insertId
+                    await notifyWorkerForJob(jobId)
                     res.status(200).json({
                       status: 1,
                       message: "Job Added Successfully",
