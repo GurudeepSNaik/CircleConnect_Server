@@ -26,7 +26,7 @@ module.exports = {
                   message: err.message,
                 });
               } else {
-                await notifyCompanyForApplication(jobId, userId);
+                await notifyCompanyForApplication(jobId, userId,result.insertId);
                 res.status(200).json({
                   status: 1,
                   message: result,

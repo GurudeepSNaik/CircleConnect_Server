@@ -21,7 +21,8 @@ const notifyWorkerForJob = async (jobId) => {
         `Hello ${element.name}`,
         // "new job has been posted which matches your experience"
         "new job has been posted",
-        element.userId
+        element.userId,
+        jobId
       );
     });
 
@@ -31,7 +32,7 @@ const notifyWorkerForJob = async (jobId) => {
     console.log("Error:", error);
   }
 };
-const notifyCompanyForApplication = async (jobId, userId) => {
+const notifyCompanyForApplication = async (jobId, userId,applicationId) => {
   try {
     const query = `select name from user where userId=${userId}`;
     const worker = await executeQuery(query);
@@ -51,7 +52,9 @@ const notifyCompanyForApplication = async (jobId, userId) => {
       user.token,
       `Hello ${user.name}`,
       `${workername} has applied for a job`,
-      user.userId
+      user.userId,
+      jobId,
+      applicationId
     );
     console.log(result);
   } catch (error) {
@@ -75,7 +78,9 @@ const notifyApplicantForJobAcceptence = async (applicationId) => {
       token,
       `Hello ${username}`,
       `congratulations your application was accepted in ${companyName}.`,
-      userId
+      userId,
+      jobId,
+      applicationId
     );
     console.log(result);
   } catch (error) {

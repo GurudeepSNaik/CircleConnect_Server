@@ -3,7 +3,7 @@ const queries = require("./queries");
 const executeQuery = require("./executeQuery");
 
 process.env.GOOGLE_APPLICATION_CREDENTIALS;
-const notify = async (fcmToken, title, body,userId) => {
+const notify = async (fcmToken, title, body,userId,jobId,applicationId) => {
   try {
     const message = {
       notification: {
@@ -12,7 +12,7 @@ const notify = async (fcmToken, title, body,userId) => {
       },
       token: fcmToken,
     };
-    const query=queries.ADD_NOTIFICATIONS(title,body,fcmToken,userId);
+    const query=queries.ADD_NOTIFICATIONS(title,body,fcmToken,userId,jobId,applicationId);
     executeQuery(query);
     const response= await getMessaging().send(message);
     return { status: "resolved", message: response };

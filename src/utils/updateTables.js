@@ -156,5 +156,20 @@ const updatetablesinDatabase=()=>{
         });
       }
     });
+
+    const check_applicationId_job =`SHOW COLUMNS FROM notifications LIKE 'applicationId';`
+    connection.query(check_applicationId_job, (reviewErr, reviewResult) => {
+      if (reviewErr)  console.log(reviewErr);    
+      if (reviewResult.length === 0) {
+        const addReviewColumnQuery = `ALTER TABLE notifications 
+        ADD applicationId INT,
+        ADD COLUMN jobId INT,
+        ADD FOREIGN KEY (applicationId) REFERENCES application(id),
+        ADD FOREIGN KEY (jobId) REFERENCES job(jobId);`;
+        connection.query(addReviewColumnQuery, (addReviewErr, addReviewResult) => {
+          if (addReviewErr)  console.log(addReviewErr);
+        });
+      }
+    });
 }
 module.exports=updatetablesinDatabase;

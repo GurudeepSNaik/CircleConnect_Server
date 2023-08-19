@@ -1,4 +1,4 @@
-const connection = require("../../config/connection.js");
+const { changeKeyNameToObject } = require("../utils/changeKeyNameToObject.js");
 const executeQuery = require("../utils/executeQuery.js");
 const queries = require("../utils/queries.js");
 
@@ -14,9 +14,10 @@ module.exports = {
       }
       const query = queries.GET_NOTIFICATIONS(userId);
       const result = await executeQuery(query);
+      const actualResult=changeKeyNameToObject(result);
       return res.status(200).json({
         status: 1,
-        list: result,
+        list: actualResult,
       });
     } catch (error) {
       res.status(201).json({
