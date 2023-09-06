@@ -117,6 +117,16 @@ const updatetablesinDatabase=()=>{
         });
       }
     });
+    const check_firebaseId_In_user =`SHOW COLUMNS FROM user LIKE 'firebaseId';`
+    connection.query(check_firebaseId_In_user, (reviewErr, reviewResult) => {
+      if (reviewErr)  console.log(reviewErr);    
+      if (reviewResult.length === 0) {
+        const addReviewColumnQuery = `ALTER TABLE user ADD firebaseId VARCHAR(1000);`;
+        connection.query(addReviewColumnQuery, (addReviewErr, addReviewResult) => {
+          if (addReviewErr)  console.log(addReviewErr);
+        });
+      }
+    });
 
     const check_image_In_industry =`SHOW COLUMNS FROM industry LIKE 'image';`
     connection.query(check_image_In_industry, (reviewErr, reviewResult) => {
