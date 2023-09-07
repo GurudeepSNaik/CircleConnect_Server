@@ -130,8 +130,12 @@ module.exports = {
             });
           } else {
             if (result[0][0] && result[0][0].type) {
-              const type = result[0][0].type.toUpperCase();
-              const image = result[1][0].profilePic;
+              const type = result[0][0]?.type?.toUpperCase();
+              const image = result[1][0]?.profilePic || undefined;
+              if(!image)return res.status(201).json({
+                status: 0,
+                message: "Profile Picture is Needed for Job Creation Please add profile",
+              });
               if (type === "ADMIN" || type === "JOB POSTER") {
                 const query = `INSERT INTO job (category, companyName, location, dressCode, dateAndTime, noa, fixedCost, variableCost, tnc, requiredSkill, minExp, userId, jobType, popular, description,createdAt,updatedAt,status, companyImage)
                                VALUES (${category},'${companyName}','${location}','${dressCode}','${dateAndTime}',${noa},'${fixedCost}','${variableCost}','${tnc}','${requiredSkill}','${minExp}',${userId},'${jobType}',${popular},'${description}',NOW(),NOW(),1,'${image}');`;
