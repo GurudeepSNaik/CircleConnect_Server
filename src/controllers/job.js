@@ -293,7 +293,9 @@ module.exports = {
                                           owner.fullName AS ownerFullName,
                                           owner.profilePic AS ownerProfilePic,
                                           user2.name AS username,
-                                          owner2.name AS ownername
+                                          user2.firebaseId AS userfirebaseId,
+                                          owner2.name AS ownername,
+                                          owner2.firebaseId AS ownerfirebaseId
                                            FROM application a
                                            LEFT JOIN profile user ON a.applicationuserId = user.userId
                                            LEFT JOIN profile owner ON a.applicationownerId = owner.userId
