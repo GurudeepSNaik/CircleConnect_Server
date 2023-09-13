@@ -90,9 +90,9 @@ module.exports = {
           JOIN user ON application.applicationuserId = user.userId
           JOIN job ON application.applicationjobId = job.jobId
           JOIN profile ON application.applicationuserId = profile.userId
-          WHERE application.applicationownerId = ${userId}
           ORDER BY application.${sortBy} ${sortOrder};
           `;
+          // WHERE application.applicationownerId = ${userId}
           // AND application.rejected = false
           // AND application.accepted = false
           // LIMIT ${length} OFFSET ${skip};
