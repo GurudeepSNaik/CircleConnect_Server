@@ -297,7 +297,6 @@ module.exports = {
           JOIN job ON application.applicationjobId = job.jobId
           JOIN profile ON application.applicationuserId = profile.userId
           WHERE application.applicationownerId = ${userId}
-          AND application.rejected = 1
           ORDER BY application.${sortBy} ${sortOrder}
           LIMIT ${length} OFFSET ${skip};
         `;
@@ -325,7 +324,6 @@ module.exports = {
                 });
               } else {
                 const totalCount = countResult[0].totalCount;
-                console.log(result);
                 res.status(200).json({
                   status: 1,
                   message: "Rejected Applicants retrieved successfully",
