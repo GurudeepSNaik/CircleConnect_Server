@@ -91,8 +91,8 @@ module.exports = {
           JOIN job ON application.applicationjobId = job.jobId
           JOIN profile ON application.applicationuserId = profile.userId
           WHERE application.applicationownerId = ${userId}
-          AND application.rejected != ${1}
-          AND application.accepted != ${1}
+          AND application.rejected = false
+          AND application.accepted = false
           ORDER BY application.${sortBy} ${sortOrder}
           LIMIT ${length} OFFSET ${skip};
         `;
@@ -100,8 +100,8 @@ module.exports = {
           SELECT COUNT(*) AS totalCount
           FROM application
           WHERE application.applicationownerId = ${userId}
-          AND application.rejected != ${1}
-          AND application.accepted != ${1};
+          AND application.rejected = false
+          AND application.accepted = false;
         `;
 
         connection.query(query, (err, result) => {
@@ -203,7 +203,7 @@ module.exports = {
           SELECT COUNT(*) AS totalCount
           FROM application
           WHERE application.applicationownerId = ${userId}
-          AND application.accepted = ${1};
+          AND application.accepted = true;
         `;
 
         connection.query(query, (err, result) => {
@@ -305,7 +305,7 @@ module.exports = {
           SELECT COUNT(*) AS totalCount
           FROM application
           WHERE application.applicationownerId = ${userId}
-          AND application.rejected = 1;
+          AND application.rejected = true;
         `;
 
         connection.query(query, (err, result) => {
