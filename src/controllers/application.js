@@ -297,7 +297,7 @@ module.exports = {
           JOIN job ON application.applicationjobId = job.jobId
           JOIN profile ON application.applicationuserId = profile.userId
           WHERE application.applicationownerId = ${userId}
-          AND application.rejected != ${0}
+          AND application.rejected = true
           ORDER BY application.${sortBy} ${sortOrder}
           LIMIT ${length} OFFSET ${skip};
         `;
