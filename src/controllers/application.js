@@ -91,10 +91,10 @@ module.exports = {
           JOIN job ON application.applicationjobId = job.jobId
           JOIN profile ON application.applicationuserId = profile.userId
           WHERE application.applicationownerId = ${userId}
-          AND application.rejected = false
-          AND application.accepted = false
           ORDER BY application.${sortBy} ${sortOrder};
           `;
+          // AND application.rejected = false
+          // AND application.accepted = false
           // LIMIT ${length} OFFSET ${skip};
         // const countQuery = `
         //   SELECT COUNT(*) AS totalCount
