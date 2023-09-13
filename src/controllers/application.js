@@ -93,16 +93,16 @@ module.exports = {
           WHERE application.applicationownerId = ${userId}
           AND application.rejected = false
           AND application.accepted = false
-          ORDER BY application.${sortBy} ${sortOrder}
-          LIMIT ${length} OFFSET ${skip};
-        `;
-        const countQuery = `
-          SELECT COUNT(*) AS totalCount
-          FROM application
-          WHERE application.applicationownerId = ${userId}
-          AND application.rejected = false
-          AND application.accepted = false;
-        `;
+          ORDER BY application.${sortBy} ${sortOrder};
+          `;
+          // LIMIT ${length} OFFSET ${skip};
+        // const countQuery = `
+        //   SELECT COUNT(*) AS totalCount
+        //   FROM application
+        //   WHERE application.applicationownerId = ${userId}
+        //   AND application.rejected = false
+        //   AND application.accepted = false;
+        // `;
 
         connection.query(query, (err, result) => {
           if (err) {
@@ -112,27 +112,27 @@ module.exports = {
               message: err.message,
             });
           } else {
-            connection.query(countQuery, (countErr, countResult) => {
-              if (countErr) {
-                console.log(countErr);
-                res.status(201).json({
-                  status: 0,
-                  message: countErr.message,
-                });
-              } else {
-                const totalCount = countResult[0].totalCount;
+            // connection.query(countQuery, (countErr, countResult) => {
+            //   if (countErr) {
+            //     console.log(countErr);
+            //     res.status(201).json({
+            //       status: 0,
+            //       message: countErr.message,
+            //     });
+            //   } else {
+            //     const totalCount = countResult[0].totalCount;
                 res.status(200).json({
                   status: 1,
                   message: "Applicants retrieved successfully",
                   list: result,
                   count: result.length,
-                  totalCount: totalCount,
-                  from: skip,
-                  to: skip + length,
-                  page: page,
+                  // totalCount: totalCount,
+                  // from: skip,
+                  // to: skip + length,
+                  // page: page,
                 });
-              }
-            });
+              // }
+            // });
           }
         });
       } else {
