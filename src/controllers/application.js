@@ -73,7 +73,7 @@ module.exports = {
           user.city AS usercity,
           user.province AS userstate,
           user.country AS usercountry,
-          profile.profilePic as userProfilePic
+          profile.profilePic as userProfilePic,
           job.companyName AS jobcompanyname,
           job.location AS joblocation,
           job.dressCode AS jobdresscode,
@@ -177,7 +177,7 @@ module.exports = {
           user.city AS usercity,
           user.province AS userstate,
           user.country AS usercountry,
-          profile.profilePic as userProfilePic
+          profile.profilePic as userProfilePic,
           job.companyName AS jobcompanyname,
           job.location AS joblocation,
           job.dressCode AS jobdresscode,
@@ -279,7 +279,7 @@ module.exports = {
           user.city AS usercity,
           user.province AS userstate,
           user.country AS usercountry,
-          profile.profilePic as userProfilePic
+          profile.profilePic as userProfilePic,
           job.companyName AS jobcompanyname,
           job.location AS joblocation,
           job.dressCode AS jobdresscode,
