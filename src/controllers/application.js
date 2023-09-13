@@ -1,6 +1,9 @@
 const connection = require("../../config/connection.js");
 const executeQuery = require("../utils/executeQuery.js");
-const { notifyCompanyForApplication, notifyApplicantForJobAcceptence } = require("../utils/notification.js");
+const {
+  notifyCompanyForApplication,
+  notifyApplicantForJobAcceptence,
+} = require("../utils/notification.js");
 const queries = require("../utils/queries.js");
 
 module.exports = {
@@ -26,7 +29,11 @@ module.exports = {
                   message: err.message,
                 });
               } else {
-                await notifyCompanyForApplication(jobId, userId,result.insertId);
+                await notifyCompanyForApplication(
+                  jobId,
+                  userId,
+                  result.insertId
+                );
                 res.status(200).json({
                   status: 1,
                   message: result,
@@ -46,7 +53,7 @@ module.exports = {
   },
   getApplicants: function (req, res) {
     let {
-      length = 10,
+      length = 9000000,
       page = 1,
       sortBy = "createdAt",
       sortType = "ascending",
@@ -73,7 +80,7 @@ module.exports = {
           user.city AS usercity,
           user.province AS userstate,
           user.country AS usercountry,
-          profile.profilePic as userProfilePic,
+          COALESCE(profile.profilePic,'') AS userProfilePic,
           job.companyName AS jobcompanyname,
           job.location AS joblocation,
           job.dressCode AS jobdresscode,
@@ -89,20 +96,20 @@ module.exports = {
           FROM application
           JOIN user ON application.applicationuserId = user.userId
           JOIN job ON application.applicationjobId = job.jobId
-          JOIN profile ON application.applicationuserId = profile.userId
-          ORDER BY application.${sortBy} ${sortOrder};
-          `;
-          // WHERE application.applicationownerId = ${userId}
-          // AND application.rejected = false
-          // AND application.accepted = false
-          // LIMIT ${length} OFFSET ${skip};
-        // const countQuery = `
-        //   SELECT COUNT(*) AS totalCount
-        //   FROM application
-        //   WHERE application.applicationownerId = ${userId}
-        //   AND application.rejected = false
-        //   AND application.accepted = false;
-        // `;
+          LEFT JOIN profile ON application.applicationuserId = profile.userId
+          WHERE application.applicationownerId = ${userId}
+          AND application.rejected = false
+          AND application.accepted = false
+          ORDER BY application.${sortBy} ${sortOrder}
+          LIMIT ${length} OFFSET ${skip};
+        `;
+        const countQuery = `
+          SELECT COUNT(*) AS totalCount
+          FROM application
+          WHERE application.applicationownerId = ${userId}
+          AND application.rejected = false
+          AND application.accepted = false;
+        `;
 
         connection.query(query, (err, result) => {
           if (err) {
@@ -112,27 +119,27 @@ module.exports = {
               message: err.message,
             });
           } else {
-            // connection.query(countQuery, (countErr, countResult) => {
-            //   if (countErr) {
-            //     console.log(countErr);
-            //     res.status(201).json({
-            //       status: 0,
-            //       message: countErr.message,
-            //     });
-            //   } else {
-            //     const totalCount = countResult[0].totalCount;
+            connection.query(countQuery, (countErr, countResult) => {
+              if (countErr) {
+                console.log(countErr);
+                res.status(201).json({
+                  status: 0,
+                  message: countErr.message,
+                });
+              } else {
+                const totalCount = countResult[0].totalCount;
                 res.status(200).json({
                   status: 1,
                   message: "Applicants retrieved successfully",
                   list: result,
                   count: result.length,
-                  // totalCount: totalCount,
-                  // from: skip,
-                  // to: skip + length,
-                  // page: page,
+                  totalCount: totalCount,
+                  from: skip,
+                  to: skip + length,
+                  page: page,
                 });
-              // }
-            // });
+              }
+            });
           }
         });
       } else {
@@ -150,7 +157,7 @@ module.exports = {
   },
   getAcceptedApplicants: function (req, res) {
     let {
-      length = 10,
+      length = 9000000,
       page = 1,
       sortBy = "createdAt",
       sortType = "ascending",
@@ -177,7 +184,7 @@ module.exports = {
           user.city AS usercity,
           user.province AS userstate,
           user.country AS usercountry,
-          profile.profilePic as userProfilePic,
+          COALESCE(profile.profilePic,'') AS userProfilePic,
           job.companyName AS jobcompanyname,
           job.location AS joblocation,
           job.dressCode AS jobdresscode,
@@ -193,7 +200,7 @@ module.exports = {
           FROM application
           JOIN user ON application.applicationuserId = user.userId
           JOIN job ON application.applicationjobId = job.jobId
-          JOIN profile ON application.applicationuserId = profile.userId
+          LEFT JOIN profile ON application.applicationuserId = profile.userId
           WHERE application.applicationownerId = ${userId}
           AND application.accepted = true
           ORDER BY application.${sortBy} ${sortOrder}
@@ -252,7 +259,7 @@ module.exports = {
   },
   getRejectedApplicants: function (req, res) {
     let {
-      length = 10,
+      length = 9000000,
       page = 1,
       sortBy = "createdAt",
       sortType = "ascending",
@@ -279,7 +286,7 @@ module.exports = {
           user.city AS usercity,
           user.province AS userstate,
           user.country AS usercountry,
-          profile.profilePic as userProfilePic,
+          COALESCE(profile.profilePic,'') AS userProfilePic,
           job.companyName AS jobcompanyname,
           job.location AS joblocation,
           job.dressCode AS jobdresscode,
@@ -295,7 +302,7 @@ module.exports = {
           FROM application
           JOIN user ON application.applicationuserId = user.userId
           JOIN job ON application.applicationjobId = job.jobId
-          JOIN profile ON application.applicationuserId = profile.userId
+          LEFT JOIN profile ON application.applicationuserId = profile.userId
           WHERE application.applicationownerId = ${userId}
           AND application.rejected = true
           ORDER BY application.${sortBy} ${sortOrder}
@@ -391,7 +398,7 @@ module.exports = {
                   const query = `UPDATE job
                   SET status = 0
                   WHERE noa <= ${numberOfApplicants};`;
-                  connection.query(query, async(err, result) => {
+                  connection.query(query, async (err, result) => {
                     if (err) {
                       console.log(err);
                       res.status(201).json({
@@ -399,7 +406,8 @@ module.exports = {
                         message: err.message,
                       });
                     } else {
-                     if(accepted) await notifyApplicantForJobAcceptence(applicationId);
+                      if (accepted)
+                        await notifyApplicantForJobAcceptence(applicationId);
                       res.status(200).json({
                         status: 1,
                         message: "Success",
@@ -498,7 +506,7 @@ module.exports = {
   },
   getApplications: async function (req, res) {
     let {
-      length = 10,
+      length = 9000000,
       page = 1,
       sortBy = "createdAt",
       sortType = "ascending",
@@ -542,7 +550,7 @@ module.exports = {
   },
   recentApplicants: async function (req, res) {
     let {
-      length = 10,
+      length = 9000000,
       page = 1,
       sortBy = "createdAt",
       sortType = "ascending",
