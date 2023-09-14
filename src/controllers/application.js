@@ -457,6 +457,7 @@ module.exports = {
           user.province AS userstate,
           user.country AS usercountry,
           user.firebaseId AS userfirebaseId,
+          user.fmctoken AS userfmctoken,
           job.companyName AS jobcompanyname,
           job.location AS joblocation,
           job.dressCode AS jobdresscode,
