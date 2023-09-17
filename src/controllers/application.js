@@ -10,6 +10,14 @@ module.exports = {
   apply: async function (req, res) {
     try {
       const { jobId, userId, coverletter } = req.body;
+      const query =  `SELECT * FROM application WHERE applicationuserId=${userId} AND applicationjobId=${jobId};`
+      const result=await executeQuery(query);
+      if(result.length>0){
+       return res.status(201).json({
+          status: 0,
+          message: "You have already applied for this job",
+        });
+      }
       if (jobId && userId && coverletter) {
         const query = `select userId from job where jobId=${jobId}`;
         connection.query(query, (err, result) => {
@@ -458,6 +466,7 @@ module.exports = {
           user.country AS usercountry,
           user.firebaseId AS userfirebaseId,
           user.fmctoken AS userfmctoken,
+          COALESCE(profile.profilePic,'') AS userProfilePic,
           job.companyName AS jobcompanyname,
           job.location AS joblocation,
           job.dressCode AS jobdresscode,
@@ -473,6 +482,7 @@ module.exports = {
           FROM application
           JOIN user ON application.applicationuserId = user.userId
           JOIN job ON application.applicationjobId = job.jobId
+          LEFT JOIN profile ON application.applicationuserId = profile.userId
           WHERE application.id = ${applicationId}
           AND application.rejected != ${1};
         `;
