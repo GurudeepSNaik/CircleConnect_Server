@@ -173,11 +173,12 @@ const updatetablesinDatabase = () => {
       }
     }
   );
+
   const check_govtPhoto_In_user = `SHOW COLUMNS FROM user LIKE 'govtPhoto';`;
   connection.query(check_govtPhoto_In_user, (reviewErr, reviewResult) => {
     if (reviewErr) console.log(reviewErr);
     if (reviewResult.length === 0) {
-      const addReviewColumnQuery = `ALTER TABLE user ADD govtPhoto VARCHAR(1000);`;
+      const addReviewColumnQuery = `ALTER TABLE user ADD govtPhoto VARCHAR(1000), ADD govtPhotoStatus BOOLEAN default false;`;
       connection.query(
         addReviewColumnQuery,
         (addReviewErr, addReviewResult) => {
@@ -277,7 +278,21 @@ const updatetablesinDatabase = () => {
       );
     }
   });
-
+  const check_spam_table = `SHOW TABLES LIKE 'spam'`;
+  connection.query(check_spam_table, (reviewErr, reviewResult) => {
+    if (reviewErr) console.log(reviewErr);
+    if (reviewResult.length === 0) {
+      const addReviewColumnQuery = `CREATE TABLE spam (
+          spamText VARCHAR(1000)
+      );`;
+      connection.query(
+        addReviewColumnQuery,
+        (addReviewErr, addReviewResult) => {
+          if (addReviewErr) console.log(addReviewErr);
+        }
+      );
+    }
+  });
   const check_spamText_spam = `SHOW COLUMNS FROM spam LIKE 'spamText';`;
   connection.query(check_spamText_spam, (reviewErr, reviewResult) => {
     if (reviewErr) console.log(reviewErr);
