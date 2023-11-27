@@ -6,7 +6,7 @@ const industry = require("./industry")
 const application = require("./application")
 const settings = require("./settings")
 const notifications = require("./notifications")
-
+const spam = require('./spam')
 module.exports = {
   login,
   user,
@@ -15,6 +15,7 @@ module.exports = {
   industry,
   application,
   settings,
-  notifications
+  notifications,
+  spam
   };
 

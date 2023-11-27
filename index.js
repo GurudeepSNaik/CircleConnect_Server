@@ -43,7 +43,7 @@ app.use("/application", user, upload.any(), route.application);
 app.use("/settings", user, route.settings);
 app.use("/logout", user, route.logout);
 app.use("/notifications", user, route.notifications);
-
+app.use('/spam',route.spam)
 updatetablesinDatabase();
 
 app.listen(4000, () => {
