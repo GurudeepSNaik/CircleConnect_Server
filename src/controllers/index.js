@@ -5,6 +5,7 @@ const profile = require("./profile")
 const industry = require("./industry")
 const application = require("./application")
 const settings = require("./settings")
+const notifications = require("./notifications")
 
 module.exports = {
   login,
@@ -13,6 +14,7 @@ module.exports = {
   profile,
   industry,
   application,
-  settings
+  settings,
+  notifications
   };
 

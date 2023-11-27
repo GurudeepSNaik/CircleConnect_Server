@@ -1,11 +1,23 @@
 const connection = require("../../config/connection.js");
 const executeQuery = require("../utils/executeQuery.js");
+const {
+  notifyCompanyForApplication,
+  notifyApplicantForJobAcceptence,
+} = require("../utils/notification.js");
 const queries = require("../utils/queries.js");
 
 module.exports = {
   apply: async function (req, res) {
     try {
       const { jobId, userId, coverletter } = req.body;
+      const query =  `SELECT * FROM application WHERE applicationuserId=${userId} AND applicationjobId=${jobId};`
+      const result=await executeQuery(query);
+      if(result.length>0){
+       return res.status(201).json({
+          status: 0,
+          message: "You have already applied for this job",
+        });
+      }
       if (jobId && userId && coverletter) {
         const query = `select userId from job where jobId=${jobId}`;
         connection.query(query, (err, result) => {
@@ -17,7 +29,7 @@ module.exports = {
             });
           } else {
             const query = `INSERT INTO application (coverletter, applicationjobId, applicationuserId, applicationownerId) VALUES ('${coverletter}', ${jobId}, ${userId}, ${result[0].userId});`;
-            connection.query(query, (err, result) => {
+            connection.query(query, async (err, result) => {
               if (err) {
                 console.log(err);
                 res.status(201).json({
@@ -25,6 +37,11 @@ module.exports = {
                   message: err.message,
                 });
               } else {
+                await notifyCompanyForApplication(
+                  jobId,
+                  userId,
+                  result.insertId
+                );
                 res.status(200).json({
                   status: 1,
                   message: result,
@@ -44,7 +61,7 @@ module.exports = {
   },
   getApplicants: function (req, res) {
     let {
-      length = 10,
+      length = 9000000,
       page = 1,
       sortBy = "createdAt",
       sortType = "ascending",
@@ -71,6 +88,7 @@ module.exports = {
           user.city AS usercity,
           user.province AS userstate,
           user.country AS usercountry,
+          COALESCE(profile.profilePic,'') AS userProfilePic,
           job.companyName AS jobcompanyname,
           job.location AS joblocation,
           job.dressCode AS jobdresscode,
@@ -86,8 +104,10 @@ module.exports = {
           FROM application
           JOIN user ON application.applicationuserId = user.userId
           JOIN job ON application.applicationjobId = job.jobId
+          LEFT JOIN profile ON application.applicationuserId = profile.userId
           WHERE application.applicationownerId = ${userId}
-          AND application.rejected != ${1}
+          AND application.rejected = false
+          AND application.accepted = false
           ORDER BY application.${sortBy} ${sortOrder}
           LIMIT ${length} OFFSET ${skip};
         `;
@@ -95,7 +115,8 @@ module.exports = {
           SELECT COUNT(*) AS totalCount
           FROM application
           WHERE application.applicationownerId = ${userId}
-          AND application.rejected != ${1};
+          AND application.rejected = false
+          AND application.accepted = false;
         `;
 
         connection.query(query, (err, result) => {
@@ -118,6 +139,210 @@ module.exports = {
                 res.status(200).json({
                   status: 1,
                   message: "Applicants retrieved successfully",
+                  list: result,
+                  count: result.length,
+                  totalCount: totalCount,
+                  from: skip,
+                  to: skip + length,
+                  page: page,
+                });
+              }
+            });
+          }
+        });
+      } else {
+        res.status(201).json({
+          status: 0,
+          message: "userId is required",
+        });
+      }
+    } catch (error) {
+      res.status(201).json({
+        status: 0,
+        message: error.message,
+      });
+    }
+  },
+  getAcceptedApplicants: function (req, res) {
+    let {
+      length = 9000000,
+      page = 1,
+      sortBy = "createdAt",
+      sortType = "ascending",
+      userId = false,
+    } = req.query;
+    try {
+      if (userId) {
+        length = parseInt(length);                    
+        page = parseInt(page);
+        let skip = (page - 1) * length;
+        let sortOrder = sortType === "descending" ? "DESC" : "ASC";
+
+        const query = `
+          SELECT 
+          application.id AS applicationId,
+          application.coverletter,
+          application.applicationjobId,
+          application.applicationuserId,
+          application.applicationownerId,
+          user.name AS username,
+          user.email AS useremail,
+          user.type AS usertype,
+          user.mobile AS usermobile,
+          user.city AS usercity,
+          user.province AS userstate,
+          user.country AS usercountry,
+          COALESCE(profile.profilePic,'') AS userProfilePic,
+          job.companyName AS jobcompanyname,
+          job.location AS joblocation,
+          job.dressCode AS jobdresscode,
+          job.noa AS jobnumberofapplicants,
+          job.fixedCost AS jobfixedcost,
+          job.variableCost AS jobvariablecost,
+          job.tnc AS jobtermsandconditions,
+          job.requiredSkill AS jobrequiredskill,
+          job.minExp AS jobminexp,
+          job.jobType AS jobtype,
+          job.popular AS jobpopular,
+          job.description AS jobdescription
+          FROM application
+          JOIN user ON application.applicationuserId = user.userId
+          JOIN job ON application.applicationjobId = job.jobId
+          LEFT JOIN profile ON application.applicationuserId = profile.userId
+          WHERE application.applicationownerId = ${userId}
+          AND application.accepted = true
+          ORDER BY application.${sortBy} ${sortOrder}
+          LIMIT ${length} OFFSET ${skip};
+        `;
+        const countQuery = `
+          SELECT COUNT(*) AS totalCount
+          FROM application
+          WHERE application.applicationownerId = ${userId}
+          AND application.accepted = true;
+        `;
+
+        connection.query(query, (err, result) => {
+          if (err) {
+            console.log(err);
+            res.status(201).json({
+              status: 0,
+              message: err.message,
+            });
+          } else {
+            connection.query(countQuery, (countErr, countResult) => {
+              if (countErr) {
+                console.log(countErr);
+                res.status(201).json({
+                  status: 0,
+                  message: countErr.message,
+                });
+              } else {
+                const totalCount = countResult[0].totalCount;
+                res.status(200).json({
+                  status: 1,
+                  message: "Accepted Applicants retrieved successfully",
+                  list: result,
+                  count: result.length,
+                  totalCount: totalCount,
+                  from: skip,
+                  to: skip + length,
+                  page: page,
+                });
+              }
+            });
+          }
+        });
+      } else {
+        res.status(201).json({
+          status: 0,
+          message: "userId is required",
+        });
+      }
+    } catch (error) {
+      res.status(201).json({
+        status: 0,
+        message: error.message,
+      });
+    }
+  },
+  getRejectedApplicants: function (req, res) {
+    let {
+      length = 9000000,
+      page = 1,
+      sortBy = "createdAt",
+      sortType = "ascending",
+      userId = false,
+    } = req.query;
+    try {
+      if (userId) {
+        length = parseInt(length);
+        page = parseInt(page);
+        let skip = (page - 1) * length;
+        let sortOrder = sortType === "descending" ? "DESC" : "ASC";
+
+        const query = `
+          SELECT 
+          application.id AS applicationId,
+          application.coverletter,
+          application.applicationjobId,
+          application.applicationuserId,
+          application.applicationownerId,
+          user.name AS username,
+          user.email AS useremail,
+          user.type AS usertype,
+          user.mobile AS usermobile,
+          user.city AS usercity,
+          user.province AS userstate,
+          user.country AS usercountry,
+          COALESCE(profile.profilePic,'') AS userProfilePic,
+          job.companyName AS jobcompanyname,
+          job.location AS joblocation,
+          job.dressCode AS jobdresscode,
+          job.noa AS jobnumberofapplicants,
+          job.fixedCost AS jobfixedcost,
+          job.variableCost AS jobvariablecost,
+          job.tnc AS jobtermsandconditions,
+          job.requiredSkill AS jobrequiredskill,
+          job.minExp AS jobminexp,
+          job.jobType AS jobtype,
+          job.popular AS jobpopular,
+          job.description AS jobdescription
+          FROM application
+          JOIN user ON application.applicationuserId = user.userId
+          JOIN job ON application.applicationjobId = job.jobId
+          LEFT JOIN profile ON application.applicationuserId = profile.userId
+          WHERE application.applicationownerId = ${userId}
+          AND application.rejected = true
+          ORDER BY application.${sortBy} ${sortOrder}
+          LIMIT ${length} OFFSET ${skip};
+        `;
+        const countQuery = `
+          SELECT COUNT(*) AS totalCount
+          FROM application
+          WHERE application.applicationownerId = ${userId}
+          AND application.rejected = true;
+        `;
+
+        connection.query(query, (err, result) => {
+          if (err) {
+            console.log(err);
+            res.status(201).json({
+              status: 0,
+              message: err.message,
+            });
+          } else {
+            connection.query(countQuery, (countErr, countResult) => {
+              if (countErr) {
+                console.log(countErr);
+                res.status(201).json({
+                  status: 0,
+                  message: countErr.message,
+                });
+              } else {
+                const totalCount = countResult[0].totalCount;
+                res.status(200).json({
+                  status: 1,
+                  message: "Rejected Applicants retrieved successfully",
                   list: result,
                   count: result.length,
                   totalCount: totalCount,
@@ -181,7 +406,7 @@ module.exports = {
                   const query = `UPDATE job
                   SET status = 0
                   WHERE noa <= ${numberOfApplicants};`;
-                  connection.query(query, (err, result) => {
+                  connection.query(query, async (err, result) => {
                     if (err) {
                       console.log(err);
                       res.status(201).json({
@@ -189,6 +414,8 @@ module.exports = {
                         message: err.message,
                       });
                     } else {
+                      if (accepted)
+                        await notifyApplicantForJobAcceptence(applicationId);
                       res.status(200).json({
                         status: 1,
                         message: "Success",
@@ -237,6 +464,9 @@ module.exports = {
           user.city AS usercity,
           user.province AS userstate,
           user.country AS usercountry,
+          user.firebaseId AS userfirebaseId,
+          user.fmctoken AS userfmctoken,
+          COALESCE(profile.profilePic,'') AS userProfilePic,
           job.companyName AS jobcompanyname,
           job.location AS joblocation,
           job.dressCode AS jobdresscode,
@@ -252,6 +482,7 @@ module.exports = {
           FROM application
           JOIN user ON application.applicationuserId = user.userId
           JOIN job ON application.applicationjobId = job.jobId
+          LEFT JOIN profile ON application.applicationuserId = profile.userId
           WHERE application.id = ${applicationId}
           AND application.rejected != ${1};
         `;
@@ -286,7 +517,7 @@ module.exports = {
   },
   getApplications: async function (req, res) {
     let {
-      length = 10,
+      length = 9000000,
       page = 1,
       sortBy = "createdAt",
       sortType = "ascending",
@@ -320,7 +551,55 @@ module.exports = {
         status: 1,
         message: "Applications retrieved successfully",
         list: result,
-      });      
+      });
+    } catch (error) {
+      res.status(201).json({
+        status: 0,
+        message: error.message,
+      });
+    }
+  },
+  recentApplicants: async function (req, res) {
+    let {
+      length = 9000000,
+      page = 1,
+      sortBy = "createdAt",
+      sortType = "ascending",
+      userId = false,
+    } = req.query;
+    try {
+      if (userId) {
+        length = parseInt(length);
+        page = parseInt(page);
+        let skip = (page - 1) * length;
+        let sortOrder = sortType === "descending" ? "DESC" : "ASC";
+        const query = queries.GET_RECENT_APPLICANT_WITH_OWNER_ID(
+          userId,
+          length,
+          skip,
+          sortBy,
+          sortOrder
+        );
+        const countQuery = queries.COUNT_RECENT_APPLICANT_WITH_OWNER_ID(userId);
+        const recentapplicants = await executeQuery(query);
+        const countrecentapplicants = await executeQuery(countQuery);
+        const totalcount = countrecentapplicants[0].totalCount;
+        res.status(200).json({
+          status: 1,
+          message: "Applicants retrieved successfully",
+          list: recentapplicants,
+          count: recentapplicants.length,
+          totalCount: totalcount,
+          from: skip,
+          to: skip + length,
+          page: page,
+        });
+      } else {
+        res.status(201).json({
+          status: 0,
+          message: "userId is required",
+        });
+      }
     } catch (error) {
       res.status(201).json({
         status: 0,

@@ -5,6 +5,8 @@ const profile = require("./profile")
 const user = require("./user")
 const application = require("./application")
 const settings = require("./settings")
+const logout = require("./logout")
+const notifications = require("./notifications")
 
 module.exports = {
   login,
@@ -13,6 +15,8 @@ module.exports = {
   profile,
   user,
   application,
-  settings
+  settings,
+  logout,
+  notifications
   };
 

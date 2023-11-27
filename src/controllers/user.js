@@ -69,6 +69,7 @@ module.exports = {
   },
   getuser: async function (req, res) {
     const { id, search } = req.body;
+    console.log
     if (id) {
       connection.query(
         `Select * from user where userId = '${id}'`,
@@ -120,6 +121,7 @@ module.exports = {
               message: err.message,
             });
           } else {
+            console.log(result[0])
             res.status(200).json({
               status: 1,
               message: "user list retrieved successfully!",
@@ -171,7 +173,7 @@ module.exports = {
             res.status(200).json({
               status: 1,
               message: "user Deleted successfully",
-              list:result[5]
+              list: result[5],
             });
           }
         });
@@ -188,57 +190,62 @@ module.exports = {
       });
     }
   },
-  providersJobs:async function(req,res){
+  providersJobs: async function (req, res) {
     try {
-      let {userId, length = 10, page = 1, sortBy = "createdAt", sortType = "ascending" }=req.query;
-      if(userId){
-        length=parseInt(length);
-        page=parseInt(page);
+      let {
+        userId,
+        length = 10,
+        page = 1,
+        sortBy = "createdAt",
+        sortType = "ascending",
+      } = req.query;
+      if (userId) {
+        length = parseInt(length);
+        page = parseInt(page);
         let skip = (page - 1) * length;
         let sortOrder = sortType === "descending" ? "DESC" : "ASC";
-        const query =
-        `SELECT j.*, i.industry
+        const query = `SELECT j.*, i.industry
         FROM job j
         JOIN industry i ON j.category = i.industryId
         WHERE userId=${userId}
         ORDER BY ${sortBy} ${sortOrder}
         LIMIT ${skip}, ${length}`;
-      connection.query(query, (err, result) => {
-        if (err) {
-          console.log(err);
-          res.status(201).json({
-            status: 0,
-            message: err.message,
-          });
-        } else {
-          const totalCountQuery = `SELECT COUNT(*) AS totalCount FROM job WHERE userId=${userId}`;
-          connection.query(totalCountQuery, (countErr, countResult) => {
-            if (countErr) {
-              console.log(countErr);
-              res.status(201).json({
-                status: 0,
-                message: countErr.message,
-              });
-            } else {
-              const totalCount = countResult[0].totalCount;
-              res.status(200).json({
-                status: 1,
-                message: "Jobs Retrieved Successfully",
-                list: result,
-                count: result.length || 0,
-                totalCount: totalCount,
-                from:skip,
-                to:skip+length,
-                page:page
-              });
-            }
-          });
-        }
-      });
-      }else{
+        connection.query(query, (err, result) => {
+          if (err) {
+            console.log(err);
+            res.status(201).json({
+              status: 0,
+              message: err.message,
+            });
+          } else {
+            const totalCountQuery = `SELECT COUNT(*) AS totalCount FROM job WHERE userId=${userId}`;
+            connection.query(totalCountQuery, (countErr, countResult) => {
+              if (countErr) {
+                console.log(countErr);
+                res.status(201).json({
+                  status: 0,
+                  message: countErr.message,
+                });
+              } else {
+                const totalCount = countResult[0].totalCount;
+                res.status(200).json({
+                  status: 1,
+                  message: "Jobs Retrieved Successfully",
+                  list: result,
+                  count: result.length || 0,
+                  totalCount: totalCount,
+                  from: skip,
+                  to: skip + length,
+                  page: page,
+                });
+              }
+            });
+          }
+        });
+      } else {
         res.status(200).json({
           status: 0,
-          message:"userId is a required Field"
+          message: "userId is a required Field",
         });
       }
     } catch (error) {
@@ -247,5 +254,62 @@ module.exports = {
         message: error.message,
       });
     }
+  },
+  isGovtPhotVerified:async function (req,res) {
+    const {id : userID} = req.params;
+    console.log(userID);  
+
+    if(!userID){
+      return res.status(201).json({
+        status: 0,
+        message: "id is required field",
+      })
+    }
+    const query = `SELECT govtPhotoStatus FROM user WHERE userId = ${userID}`
+    connection.query(query,async (err,result) => {
+        if(err){
+          console.log(err.message);
+          res.status(201).json({
+            status: 0,
+            message: err.message,
+          });
+        }else{
+          console.log(result[0].govtPhotoStatus),"--result";
+          return res.status(201).json({
+            status: 1,
+            message: "User status retrieved successfully!" ,
+            govtPhotoStatus:!!result[0].govtPhotoStatus
+          });
+          
+        }
+    })
+
+
+  },
+  updateGovtPhotoStatus:async function(req,res) {
+    const {id : userID,govtPhotoStatus} = req.body;
+    console.log(userID);  
+    if(!userID || govtPhotoStatus === null || govtPhotoStatus === undefined){
+      return res.status(201).json({
+        status: 0,
+        message: "All fileds are required",
+      })
+    }
+    const query = `UPDATE user SET govtPhotoStatus = ${govtPhotoStatus} WHERE userId = ${userID}`
+    connection.query(query,async (err,result) => {
+        if(err){
+          console.log(err.message);
+          res.status(201).json({
+            status: 0,
+            message: err.message,
+          });
+        }else{
+          return res.status(201).json({
+            status: 1,
+            message: "User status updated successfully!" ,
+          });
+          
+        }
+    })
   }
 };

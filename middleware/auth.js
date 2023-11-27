@@ -1,8 +1,10 @@
 const jwt = require("jsonwebtoken");
+const queries = require("../src/utils/queries");
+const executeQuery = require("../src/utils/executeQuery");
 
 const config = process.env;
 
-const user = (req, res, next) => {
+const user = async (req, res, next) => {
 
   let token = req.header("Authorization");
   if (token && token.startsWith('Bearer ')) {
@@ -14,10 +16,15 @@ const user = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, config.TOKEN_KEY);
     req.user = decoded;
+    const query=queries.DATA_WITH_KEY_VALUE_TABLE("userId",decoded.id,"user");
+    const user=await executeQuery(query);
+    if(user[0].logged===0){
+      return res.status(401).send("Invalid Token");
+    }
+    return next();
   } catch (err) {
     return res.status(401).send("Invalid Token");
   }
-  return next();
 };
 
 module.exports=user;

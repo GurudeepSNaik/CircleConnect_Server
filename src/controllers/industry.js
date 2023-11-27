@@ -114,10 +114,11 @@ module.exports = {
   add: function (req, res) {
     let { industry } = req.body;
     try {
-      if (industry) {
+      const image=req.files[0].filename
+      if (industry && image) {
         if (typeof industry === "string") {
-          const query = `INSERT INTO industry (industry, status)
-              SELECT '${industry}', 1
+          const query = `INSERT INTO industry (industry,image, status)
+              SELECT '${industry}','${image}', 1
               WHERE NOT EXISTS (SELECT industry FROM industry WHERE industry = '${industry}');
               SELECT industryId, industry FROM industry WHERE industry = '${industry}';`;
           connection.query(query, (err, results) => {
@@ -209,7 +210,7 @@ module.exports = {
                   const data=industry.map((ind)=>{
                   const jobs=[]
                   job.forEach((each)=> each.category===ind.industryId && jobs.push(each));
-                  return {industryId:ind.industryId,industry:ind.industry,jobs:jobs}
+                  return {industryId:ind.industryId,industry:ind.industry,image:ind.image,jobs:jobs}
                   })
                   res.status(200).json({
                     status: 1,

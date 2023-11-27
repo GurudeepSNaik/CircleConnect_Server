@@ -1,4 +1,6 @@
 const connection = require("../../config/connection.js");
+const executeQuery = require("../utils/executeQuery.js");
+const { notifyWorkerForJob } = require("../utils/notification.js");
 
 module.exports = {
   search: function (req, res) {
@@ -38,15 +40,17 @@ module.exports = {
                     list: result,
                   });
                 } else {
-                  res.status(201).json({
-                    status: 0,
-                    message: "No Jobs Found",
+                  res.status(200).json({
+                    status: 1,
+                    message: "Jobs Retrived Successfully",
+                    list: [],
                   });
                 }
               } else {
-                res.status(201).json({
-                  status: 0,
-                  message: "No Jobs Found",
+                res.status(200).json({
+                  status: 1,
+                  message: "Jobs Retrived Successfully",
+                  list: [],
                 });
               }
             }
@@ -115,7 +119,8 @@ module.exports = {
         jobType &&
         popular
       ) {
-        const query = `Select * from user where userId =${userId}`;
+        const query = `Select * from user where userId =${userId};
+                       Select * from profile where userId = ${userId};`;
         connection.query(query, (err, result) => {
           if (err) {
             console.log(err.message);
@@ -124,12 +129,17 @@ module.exports = {
               message: err.message,
             });
           } else {
-            if (result[0] && result[0].type) {
-              const type = result[0].type.toUpperCase();
+            if (result[0][0] && result[0][0].type) {
+              const type = result[0][0]?.type?.toUpperCase();
+              const image = result[1][0]?.profilePic || undefined;
+              if(!image)return res.status(201).json({
+                status: 0,
+                message: "Profile Picture is Needed for Job Creation Please add profile",
+              });
               if (type === "ADMIN" || type === "JOB POSTER") {
-                const query = `INSERT INTO job (category, companyName, location, dressCode, dateAndTime, noa, fixedCost, variableCost, tnc, requiredSkill, minExp, userId, jobType, popular, description,createdAt,updatedAt,status)
-                               VALUES (${category},'${companyName}','${location}','${dressCode}','${dateAndTime}',${noa},'${fixedCost}','${variableCost}','${tnc}','${requiredSkill}','${minExp}',${userId},'${jobType}',${popular},'${description}',NOW(),NOW(),1);`;
-                connection.query(query, (err, results) => {
+                const query = `INSERT INTO job (category, companyName, location, dressCode, dateAndTime, noa, fixedCost, variableCost, tnc, requiredSkill, minExp, userId, jobType, popular, description,createdAt,updatedAt,status, companyImage)
+                               VALUES (${category},'${companyName}','${location}','${dressCode}','${dateAndTime}',${noa},'${fixedCost}','${variableCost}','${tnc}','${requiredSkill}','${minExp}',${userId},'${jobType}',${popular},'${description}',NOW(),NOW(),1,'${image}');`;
+                connection.query(query, async (err, results) => {
                   if (err) {
                     console.log(err.message);
                     res.status(201).json({
@@ -137,6 +147,8 @@ module.exports = {
                       message: err.message,
                     });
                   } else {
+                    const jobId=results.insertId
+                    await notifyWorkerForJob(jobId)
                     res.status(200).json({
                       status: 1,
                       message: "Job Added Successfully",
@@ -279,40 +291,60 @@ module.exports = {
                                           user.fullName AS userFullName,
                                           user.profilePic AS userProfilePic,
                                           owner.fullName AS ownerFullName,
-                                          owner.profilePic AS ownerProfilePic
+                                          owner.profilePic AS ownerProfilePic,
+                                          user2.name AS username,
+                                          user2.firebaseId AS userfirebaseId,
+                                          user2.fmctoken AS userfmctoken,
+                                          owner2.name AS ownername,
+                                          owner2.firebaseId AS ownerfirebaseId,
+                                          owner2.fmctoken AS ownerfmctoken
                                            FROM application a
                                            LEFT JOIN profile user ON a.applicationuserId = user.userId
                                            LEFT JOIN profile owner ON a.applicationownerId = owner.userId
+                                           LEFT JOIN user user2 ON a.applicationuserId = user2.userId
+                                           LEFT JOIN user owner2 ON a.applicationownerId = owner2.userId
                                            WHERE a.applicationjobId = ${id} AND a.accepted = 1`;
 
         const pendingApplicantsQuery = `SELECT a.* ,
                                           user.fullName AS userFullName,
                                           user.profilePic AS userProfilePic,
                                           owner.fullName AS ownerFullName,
-                                          owner.profilePic AS ownerProfilePic
+                                          owner.profilePic AS ownerProfilePic,
+                                          user2.name AS username,
+                                          owner2.name AS ownername
                                           FROM application a
                                           LEFT JOIN profile user ON a.applicationuserId = user.userId
                                           LEFT JOIN profile owner ON a.applicationownerId = owner.userId
+                                          LEFT JOIN user user2 ON a.applicationuserId = user2.userId
+                                          LEFT JOIN user owner2 ON a.applicationownerId = owner2.userId
                                           WHERE a.applicationjobId = ${id} AND a.accepted = 0 AND a.rejected = 0`;
 
         const allApplicantsQuery = `SELECT a.*,
                                       user.fullName AS userFullName,
                                       user.profilePic AS userProfilePic,
                                       owner.fullName AS ownerFullName,
-                                      owner.profilePic AS ownerProfilePic
+                                      owner.profilePic AS ownerProfilePic,
+                                      user2.name AS username,
+                                      owner2.name AS ownername
                                       FROM application a
                                       LEFT JOIN profile user ON a.applicationuserId = user.userId
                                       LEFT JOIN profile owner ON a.applicationownerId = owner.userId
+                                      LEFT JOIN user user2 ON a.applicationuserId = user2.userId
+                                      LEFT JOIN user owner2 ON a.applicationownerId = owner2.userId
                                       WHERE a.applicationjobId = ${id}`;
 
         const rejectedApplicantsQuery = `SELECT a.*,
                                           user.fullName AS userFullName,
                                           user.profilePic AS userProfilePic,
                                           owner.fullName AS ownerFullName,
-                                          owner.profilePic AS ownerProfilePic
+                                          owner.profilePic AS ownerProfilePic,
+                                          user2.name AS username,
+                                          owner2.name AS ownername
                                           FROM application a
                                           LEFT JOIN profile user ON a.applicationuserId = user.userId
                                           LEFT JOIN profile owner ON a.applicationownerId = owner.userId
+                                          LEFT JOIN user user2 ON a.applicationuserId = user2.userId
+                                          LEFT JOIN user owner2 ON a.applicationownerId = owner2.userId
                                           WHERE a.applicationjobId = ${id} AND a.rejected = 1`;
 
         const reviewQuery = `SELECT a.job_review
@@ -373,9 +405,14 @@ module.exports = {
     try {
       const { userId } = req.query;
       if (userId) {
-        const query = `SELECT *
+        const query = `SELECT job.*, 
+        industry.industry
         FROM job
-        WHERE jobId IN (SELECT applicationjobId FROM application WHERE accepted = 1) AND userId = ${userId};`;
+        JOIN industry ON job.category = industry.industryId
+        WHERE job.jobId IN (SELECT applicationjobId FROM application WHERE accepted = 1)
+        AND job.userId = ${userId}
+        AND job.job_complete != 1;
+        `;
         connection.query(query, (err, result) => {
           if (err) {
             console.log(err);
@@ -409,8 +446,10 @@ module.exports = {
     try {
       const { userId } = req.query;
       if (userId) {
-        const query = `SELECT *
+        const query = `SELECT job.*, 
+        industry.industry
         FROM job
+        JOIN industry ON job.category = industry.industryId
         WHERE jobId NOT IN (SELECT applicationjobId FROM application WHERE Accepted = 1) AND userId = ${userId};`;
         connection.query(query, (err, result) => {
           if (err) {
@@ -445,13 +484,16 @@ module.exports = {
     try {
       const { userId } = req.query;
       if (userId) {
-        const query = `SELECT *
+        const query = `SELECT job.*, 
+        industry.industry
         FROM job
+        JOIN industry ON job.category = industry.industryId
         WHERE jobId IN (
             SELECT applicationjobId
             FROM application
             WHERE applicationuserId = ${userId}
                 AND accepted = 1
+                AND job_complete != 1
         )`;
         connection.query(query, (err, result) => {
           if (err) {
@@ -482,35 +524,94 @@ module.exports = {
       });
     }
   },
-  completedJobsForWorker: function (req, res) {
+  completedJobsForWorker: async function (req, res) {
     try {
       const { userId } = req.query;
-      if (userId) {
-        res.status(200).json({
-          status: 1,
-          message: "Completed Jobs Retrieved Successfully",
-          list: [],
+      if (!userId) {
+        return res.status(201).json({
+          status: 0,
+          message: "userId Of a Worker is Required",
         });
-      } else {
       }
-      // const query = `SELECT *
-      // FROM job
-      // WHERE jobId IN (SELECT applicationjobId FROM application WHERE accepted = 1) AND userId = ${userId};`;
-      // connection.query(query, (err, result) => {
-      //   if (err) {
-      //     console.log(err);
-      //     res.status(201).json({
-      //       status: 0,
-      //       message: err.message,
-      //     });
-      //   } else {
-      //     res.status(200).json({
-      //       status: 1,
-      //       message: "Active Jobs Retrieved Successfully",
-      //       list: result,
-      //     });
-      //   }
-      // });
+      const query = `SELECT job.*, 
+      industry.industry
+      FROM job
+      JOIN industry ON job.category = industry.industryId
+      WHERE jobId IN (
+          SELECT applicationjobId
+          FROM application
+          WHERE applicationuserId = ${userId}
+              AND job_complete = 1
+      )`;
+      const result = await executeQuery(query);
+      return res.status(200).json({
+        status: 1,
+        message: "Completed Jobs Retrieved Successfully",
+        list: result,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(201).json({
+        status: 0,
+        message: error.message,
+      });
+    }
+  },
+  completedJobsForJobPoster: async function (req, res) {
+    try {
+      const { userId } = req.query;
+      if (!userId) {
+        return res.status(201).json({
+          status: 0,
+          message: "userId Of a Job Poster is Required",
+        });
+      }
+      const query = `SELECT job.*, 
+      industry.industry
+      FROM job
+      JOIN industry ON job.category = industry.industryId
+      WHERE userId  = ${userId} AND job_complete = 1`;
+      const result = await executeQuery(query);
+      return res.status(200).json({
+        status: 1,
+        message: "Completed Jobs Retrieved Successfully",
+        list: result,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(201).json({
+        status: 0,
+        message: error.message,
+      });
+    }
+  },
+  completeAJob: async function (req, res) {
+    try {
+      const { userId, jobId } = req.body;
+      if (!userId || !jobId) {
+        return res.status(201).json({
+          status: 0,
+          message: "userId and jobId is Required, Note:user Must be a worker",
+        });
+      }
+      const updateQuery = `UPDATE application SET job_complete = ${1} 
+      WHERE applicationjobId = ${jobId} AND applicationuserId=${userId}`;
+
+      const updateJobQuery = `UPDATE job
+      SET job_complete = 1
+      WHERE jobId = ${jobId}
+        AND (
+          SELECT COUNT(*)
+          FROM application
+          WHERE applicationjobId = job.jobId
+            AND job_complete = 1
+        ) >= noa;`;
+      await executeQuery(updateQuery);
+      await executeQuery(updateJobQuery);
+      return res.status(200).json({
+        status: 1,
+        message: "Job Completed",
+      });
     } catch (error) {
       console.log(error);
       res.status(201).json({
@@ -521,11 +622,11 @@ module.exports = {
   },
   rating: function (req, res) {
     try {
-      const { applicationid, rating, review, type } = req.body;
-      if (!applicationid) {
+      const { jobId, userId, rating, review, type } = req.body;
+      if (!jobId || !userId) {
         return res.status(201).json({
           status: 0,
-          message: "application id is Required, Note:user Must be a worker",
+          message: "jobId and userId is Required, Note:user Must be a worker",
         });
       }
       if (!rating || !review) {
@@ -544,7 +645,7 @@ module.exports = {
       if (type === "JOB_RATING") {
         const updateQuery = `UPDATE application
         SET job_rating = ${rating}, job_review = "${review}"
-        WHERE id = ${applicationid}`;
+        WHERE applicationjobId = ${jobId} AND applicationuserId=${userId}`;
 
         connection.query(updateQuery, (updateErr, updateResult) => {
           if (updateErr) {
@@ -565,7 +666,7 @@ module.exports = {
       if (type === "APPLICANT_RATING") {
         const updateQuery = `UPDATE application
         SET applicant_rating = ${rating}, applicant_review = "${review}"
-        WHERE id = ${applicationid}`;
+        WHERE applicationjobId = ${jobId} AND applicationuserId=${userId}`;
 
         connection.query(updateQuery, (updateErr, updateResult) => {
           if (updateErr) {
