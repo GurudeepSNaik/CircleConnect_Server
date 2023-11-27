@@ -116,8 +116,12 @@ module.exports = {
       province,
       city,
       fmctoken,
-      firebaseId
+      firebaseId,
+      registrationNumber,
+      addressLine1,
+      addressLine2,
     } = req.body;
+    const govtPhoto = req.file.filename;
     try {
       if (
         type &&
@@ -129,7 +133,11 @@ module.exports = {
         province &&
         city &&
         fmctoken &&
-        firebaseId
+        firebaseId &&
+        registrationNumber &&
+        govtPhoto &&
+        addressLine1 &&
+        addressLine2
       ) {
         email = email.toLowerCase();
         connection.query(`SELECT email from user`, function (err, result) {
@@ -146,7 +154,7 @@ module.exports = {
           if (response.length === 0) {
             OTP = generateRandomNumber(6);
             connection.query(
-              `Insert into user(name,email,type,mobile,password,city,createdAt,updatedAt,status,verified,country,province,otp,fmctoken,firebaseId) values("${username}","${email}","${type}","${mobile}","${password}","${city}", NOW(), NOW(),1,"${false}","${country}","${province}",${OTP},"${fmctoken}","${firebaseId}");`,
+              `Insert into user(name,email,type,mobile,password,city,createdAt,updatedAt,status,verified,country,province,otp,fmctoken,firebaseId,registrationNumber,govtPhoto,addressLine1,addressLine2) values("${username}","${email}","${type}","${mobile}","${password}","${city}", NOW(), NOW(),1,"${false}","${country}","${province}",${OTP},"${fmctoken}","${firebaseId}","${registrationNumber}","${govtPhoto}","${addressLine1}","${addressLine2}");`,
               function (err, result) {
                 if (err) {
                   console.log(err.message);

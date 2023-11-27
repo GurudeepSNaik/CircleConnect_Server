@@ -10,10 +10,10 @@ module.exports = {
   apply: async function (req, res) {
     try {
       const { jobId, userId, coverletter } = req.body;
-      const query =  `SELECT * FROM application WHERE applicationuserId=${userId} AND applicationjobId=${jobId};`
-      const result=await executeQuery(query);
-      if(result.length>0){
-       return res.status(201).json({
+      const query = `SELECT * FROM application WHERE applicationuserId=${userId} AND applicationjobId=${jobId};`;
+      const result = await executeQuery(query);
+      if (result.length > 0) {
+        return res.status(201).json({
           status: 0,
           message: "You have already applied for this job",
         });

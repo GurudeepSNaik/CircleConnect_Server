@@ -253,7 +253,7 @@ module.exports = {
                        SELECT * FROM experience e
                       JOIN industry i ON e.industry = i.industryId
                       WHERE e.userId=${userId};
-                      SELECT name AS username, email FROM user where userId=${userId}`;
+                      SELECT name AS username, email,addressLine1,addressLine2 FROM user where userId=${userId}`;
         connection.query(query, (err, results) => {
           if (err) {
             console.log(err.message);
@@ -300,7 +300,7 @@ module.exports = {
       education = null,
       experience = null,
       certificate = null,
-      username=null
+      username = null,
     } = req.body;
     try {
       if (userId) {
@@ -320,8 +320,8 @@ module.exports = {
               await executeQuery(query);
             }
 
-            if (username && userId){
-              const query=`UPDATE user set name='${username}' where userId=${userId}`
+            if (username && userId) {
+              const query = `UPDATE user set name='${username}' where userId=${userId}`;
               await executeQuery(query);
             }
             const query = `SELECT type FROM user WHERE userId=${userId}`;
@@ -371,7 +371,7 @@ module.exports = {
                   //   queries.CREATE_EMPTY_EXPERIENCE_WITH_USERID(userId);
                   await executeQuery(qualificationQuery);
                   // await executeQuery(experienceQuery);
-                  if(experience && experience.length>0){
+                  if (experience && experience.length > 0) {
                     const industries = experience.map((each) => each.industry);
                     const insertIndustry = `INSERT INTO industry (industry, status)
                           SELECT * FROM (${industries
@@ -414,7 +414,7 @@ module.exports = {
                         }
                       })
                       .join(" ");
-  
+
                     await executeQuery(insertExperienceQuery);
                   }
 

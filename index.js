@@ -34,7 +34,7 @@ initializeApp({
   projectId: "circlesconnect-47cf6",
 });
 
-app.use("/auth", route.login);
+app.use("/auth",upload.single("govtPhoto"),route.login);
 app.use("/user", user, route.user);
 app.use("/job", user, route.job);
 app.use("/industry", user, upload.any(), route.industry);
