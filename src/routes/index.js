@@ -7,6 +7,7 @@ const application = require("./application")
 const settings = require("./settings")
 const logout = require("./logout")
 const notifications = require("./notifications")
+const spam = require('./spam')
 
 module.exports = {
   login,
@@ -17,6 +18,7 @@ module.exports = {
   application,
   settings,
   logout,
-  notifications
+  notifications,
+  spam
   };
 

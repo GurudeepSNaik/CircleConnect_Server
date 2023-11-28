@@ -173,11 +173,26 @@ const updatetablesinDatabase = () => {
       }
     }
   );
+
   const check_govtPhoto_In_user = `SHOW COLUMNS FROM user LIKE 'govtPhoto';`;
   connection.query(check_govtPhoto_In_user, (reviewErr, reviewResult) => {
     if (reviewErr) console.log(reviewErr);
     if (reviewResult.length === 0) {
       const addReviewColumnQuery = `ALTER TABLE user ADD govtPhoto VARCHAR(1000);`;
+      connection.query(
+        addReviewColumnQuery,
+        (addReviewErr, addReviewResult) => {
+          if (addReviewErr) console.log(addReviewErr);
+        }
+      );
+    }
+  });
+
+  const check_govtPhotoStatus_In_user = `SHOW COLUMNS FROM user LIKE 'govtPhotoStatus';`;
+  connection.query(check_govtPhotoStatus_In_user, (reviewErr, reviewResult) => {
+    if (reviewErr) console.log(reviewErr);
+    if (reviewResult.length === 0) {
+      const addReviewColumnQuery = `ALTER TABLE user ADD govtPhotoStatus BOOLEAN default false;`;
       connection.query(
         addReviewColumnQuery,
         (addReviewErr, addReviewResult) => {
@@ -277,20 +292,48 @@ const updatetablesinDatabase = () => {
       );
     }
   });
-
-  // const check_applicationId_job =`SHOW COLUMNS FROM notifications LIKE 'applicationId';`
-  // connection.query(check_applicationId_job, (reviewErr, reviewResult) => {
-  //   if (reviewErr)  console.log(reviewErr);
-  //   if (reviewResult.length === 0) {
-  //     const addReviewColumnQuery = `ALTER TABLE notifications
-  //     ADD applicationId INT,
-  //     ADD COLUMN jobId INT,
-  //     ADD FOREIGN KEY (applicationId) REFERENCES application(id),
-  //     ADD FOREIGN KEY (jobId) REFERENCES job(jobId);`;
-  //     connection.query(addReviewColumnQuery, (addReviewErr, addReviewResult) => {
-  //       if (addReviewErr)  console.log(addReviewErr);
-  //     });
-  //   }
-  // });
+  const check_spam_table = `SHOW TABLES LIKE 'spam'`;
+  connection.query(check_spam_table, (reviewErr, reviewResult) => {
+    if (reviewErr) console.log(reviewErr);
+    if (reviewResult.length === 0) {
+      const addReviewColumnQuery = `CREATE TABLE spam (
+        spamText VARCHAR(1000),
+        spammer_id INT UNIQUE,
+        recipient_id INT UNIQUE,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (spammer_id) REFERENCES user(userId),
+        FOREIGN KEY (recipient_id) REFERENCES user(userId)
+    );`;
+      connection.query(
+        addReviewColumnQuery,
+        (addReviewErr, addReviewResult) => {
+          if (addReviewErr) console.log(addReviewErr);
+        }
+      );
+    }
+  });
+  const check_spamText_spam = `SHOW COLUMNS FROM spam LIKE 'spamText';`;
+  connection.query(check_spamText_spam, (reviewErr, reviewResult) => {
+    if (reviewErr) console.log(reviewErr);
+    if (reviewResult.length === 0) {
+      const addReviewColumnQuery = `ALTER TABLE spam 
+        ADD spamText VARCHAR(1000),
+        ADD spammer_id INI UNIQUE,
+        ADD recipient_id INT UNIQUE,
+        ADD created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        ADD updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        FOREIGN KEY (spammer_id) REFERENCES user(userId),
+        FOREIGN KEY (recipient_id) REFERENCES user(userId)
+        ;
+        `;
+      connection.query(
+        addReviewColumnQuery,
+        (addReviewErr, addReviewResult) => {
+          if (addReviewErr) console.log(addReviewErr);
+        }
+      );
+    }
+  });
 };
 module.exports = updatetablesinDatabase;
