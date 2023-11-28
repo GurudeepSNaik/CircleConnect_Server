@@ -178,7 +178,21 @@ const updatetablesinDatabase = () => {
   connection.query(check_govtPhoto_In_user, (reviewErr, reviewResult) => {
     if (reviewErr) console.log(reviewErr);
     if (reviewResult.length === 0) {
-      const addReviewColumnQuery = `ALTER TABLE user ADD govtPhoto VARCHAR(1000), ADD govtPhotoStatus BOOLEAN default false;`;
+      const addReviewColumnQuery = `ALTER TABLE user ADD govtPhoto VARCHAR(1000);`;
+      connection.query(
+        addReviewColumnQuery,
+        (addReviewErr, addReviewResult) => {
+          if (addReviewErr) console.log(addReviewErr);
+        }
+      );
+    }
+  });
+
+  const check_govtPhotoStatus_In_user = `SHOW COLUMNS FROM user LIKE 'govtPhotoStatus';`;
+  connection.query(check_govtPhotoStatus_In_user, (reviewErr, reviewResult) => {
+    if (reviewErr) console.log(reviewErr);
+    if (reviewResult.length === 0) {
+      const addReviewColumnQuery = `ALTER TABLE user ADD govtPhotoStatus BOOLEAN default false;`;
       connection.query(
         addReviewColumnQuery,
         (addReviewErr, addReviewResult) => {
@@ -312,7 +326,7 @@ const updatetablesinDatabase = () => {
         FOREIGN KEY (spammer_id) REFERENCES user(userId),
         FOREIGN KEY (recipient_id) REFERENCES user(userId)
         ;
-        `
+        `;
       connection.query(
         addReviewColumnQuery,
         (addReviewErr, addReviewResult) => {
