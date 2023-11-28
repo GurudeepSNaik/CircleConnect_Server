@@ -284,10 +284,12 @@ const updatetablesinDatabase = () => {
     if (reviewResult.length === 0) {
       const addReviewColumnQuery = `CREATE TABLE spam (
         spamText VARCHAR(1000),
-        spammer_name VARCHAR(255),
-        recipient_name VARCHAR(255),
+        spammer_id INT UNIQUE,
+        recipient_id INT UNIQUE,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (spammer_id) REFERENCES user(userId),
+        FOREIGN KEY (recipient_id) REFERENCES user(userId)
     );`;
       connection.query(
         addReviewColumnQuery,
@@ -303,10 +305,14 @@ const updatetablesinDatabase = () => {
     if (reviewResult.length === 0) {
       const addReviewColumnQuery = `ALTER TABLE spam 
         ADD spamText VARCHAR(1000),
-        ADD spammer_name VARCHAR(255),
-        ADD recipient_name VARCHAR(255),
+        ADD spammer_id INI UNIQUE,
+        ADD recipient_id INT UNIQUE,
         ADD created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        ADD updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`;
+        ADD updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        FOREIGN KEY (spammer_id) REFERENCES user(userId),
+        FOREIGN KEY (recipient_id) REFERENCES user(userId)
+        ;
+        `
       connection.query(
         addReviewColumnQuery,
         (addReviewErr, addReviewResult) => {
