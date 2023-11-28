@@ -283,8 +283,12 @@ const updatetablesinDatabase = () => {
     if (reviewErr) console.log(reviewErr);
     if (reviewResult.length === 0) {
       const addReviewColumnQuery = `CREATE TABLE spam (
-          spamText VARCHAR(1000)
-      );`;
+        spamText VARCHAR(1000),
+        spammer_name VARCHAR(255),
+        recipient_name VARCHAR(255),
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    );`;
       connection.query(
         addReviewColumnQuery,
         (addReviewErr, addReviewResult) => {
@@ -298,7 +302,11 @@ const updatetablesinDatabase = () => {
     if (reviewErr) console.log(reviewErr);
     if (reviewResult.length === 0) {
       const addReviewColumnQuery = `ALTER TABLE spam 
-        ADD spamText VARCHAR(1000)`;
+        ADD spamText VARCHAR(1000),
+        ADD spammer_name VARCHAR(255),
+        ADD recipient_name VARCHAR(255),
+        ADD created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        ADD updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`;
       connection.query(
         addReviewColumnQuery,
         (addReviewErr, addReviewResult) => {
